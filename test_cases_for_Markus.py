@@ -79,26 +79,30 @@ class Test(unittest.TestCase):
 
     def test_convert_to_text(self):
         actual = convert_to_text("test_resume.pdf")
-        expected = ""
+        expected = "Not sure what your python lib to parse pdf to text will return"
         self.assertEqual(actual, expected)
 
     def test_convert_to_text_dir(self):
-        actual = convert_to_text_dir("test_resume.pdf")
-        expected = "An arry of text"
+        actual = convert_to_text_dir("/test_folder")
+        expected = ["Not sure what your python lib to parse pdf to text will return", 
+                    "Not sure what your python lib to parse pdf to text will return"]
         self.assertEqual(actual, expected)
 
     def test_flagging(self):
-        actual = flagging("Some text")
-        expected = ""
+        actual = flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah")
+        expected = ["Ang Kian Hwee", "25", "S1234567A"]
         self.assertEqual(actual, expected)
     
     def test_parsing(self):
-        actual = parsing("test_resume.pdf", flagging("Some text"))
-        expected = ""
+        actual = parsing("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah", 
+                        flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah"))
+
+        expected = "Name: <pii: Name> \nAge: <pii: Age> \nNRIC: <pii: NRIC> \nSkills: Blah blah \nWorking Experience: Blah Blah"
         self.assertEqual(actual, expected)
 
     def test_process_string(self):
-        actual = process_string("test_resume.pdf")
+        raw = convert_to_text("test_resume.pdf")
+        actual = process_string(raw)
         expected = "Successfully processed and uploaded resume into database!"
         self.assertEqual(actual, expected)
 
