@@ -26,7 +26,8 @@ def process_string(raw_text):
 	"""
     PIIs = flagging(raw_text)
     parse_text = parsing(raw_text, PIIs)
-    return ("Successfully processed and uploaded resume into database!")
+    return [PIIs, parse_text] # for testing purposes only...remove this after confirming process_string works
+    # return ("Successfully processed and uploaded resume into database!")
 
 def flagging(raw_text):
     """
@@ -55,8 +56,8 @@ def parsing(raw_text, dic):
     """
     processed_text = raw_text
     # Removing hard PIIs by default: NRIC, email address, phone, physical address
-    processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii: email>', processed_text)
-    processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii: nric>', processed_text)
+    processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii_email>', processed_text)
+    processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii_nric>', processed_text)
     # if PIIs then remove 
     return processed_text
 
@@ -69,11 +70,11 @@ class Test(unittest.TestCase):
         Email: angkianhwee@u.nus.edu EDUCATION \
         National University of Singapore (NUS)"
         actual = process_string(raw_text)
-        expected = {'Ang Kian Hwee' : 'name', 'Blk123 Choa Chu Kang Loop #02-34' : 'address', 
-                    'S680341' : 'nric', 'angkianhwee@u.nus.edu' : 'email'} , 
-                    "<pii_name> <pii_address> <pii_nric> \
-        Email: <pii_email> EDUCATION \
-        National University of Singapore (NUS)"
+
+        # expected is an array of 2 items - dictionary of PIIs, parsed text
+        expected = [{'name': 'Ang Kian Hwee', 'address': 'Blk123 Choa Chu Kang Loop #02-34 S680341', 
+                    'email': 'angkianhwee@u.nus.edu'} , 
+                    "<pii_name> <pii_address> <pii_nric> Email: <pii_email> EDUCATION National University of Singapore (NUS)"]
         self.assertEqual(actual, expected)
 
 # Still up for discussion
@@ -81,12 +82,13 @@ class Test(unittest.TestCase):
 #        actual = parsing("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah", 
 #                        flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah"))
 #
-#        expected = "Name: <pii: Name> \nAge: <pii: Age> \nNRIC: <pii: NRIC> \nSkills: Blah blah \nWorking Experience: Blah Blah"
+#        expected = "Name: <pii_Name> \nAge: <pii_Age> \nNRIC: <pii_NRIC> \nSkills: Blah blah \nWorking Experience: Blah Blah"
 #        self.assertEqual(actual, expected)
 #        
 #    def test_flagging(self):
 #        actual = flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah")
 #        expected = ["Ang Kian Hwee", "25", "S1234567A"]
+#        expected = {"name": "Ang Kian Hwee", "age": "25", "nric": "S1234567A"}
 #        self.assertEqual(actual, expected)
         
         
