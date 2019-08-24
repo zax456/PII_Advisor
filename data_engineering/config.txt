@@ -1,0 +1,7 @@
+# DO NOT INSERT PASSWORD HERE, SHARE VIA OTHER CHANNELS!
+
+#host name (eg. XXXXXXXXXXXXXX.us-west-2.rds.amazonaws.com)
+#port number
+#database name
+#username
+#password XXXXX
