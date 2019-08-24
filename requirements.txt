@@ -10,6 +10,6 @@ emoji==0.5.1
 python-telegram-bot==11.1.0
 
 
-spacy == ?
-pdfminer.six == ?
-nltk == ?
+spacy == 2.1.8
+pdfminer.six == 20181108
+nltk == 3.4.5
