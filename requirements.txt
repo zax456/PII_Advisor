@@ -3,6 +3,8 @@
 # pip install -r requirements.txt and get everything we need for this project.
 
 # the following are just examples and not for this pii project:
+Flask==0.12.2
+flask_restful==0.3.7
 requests==2.20.0
 jsonschema==2.6.0
 simplejson==3.16.0
