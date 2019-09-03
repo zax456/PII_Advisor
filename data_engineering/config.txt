@@ -1,7 +1,9 @@
-# DO NOT INSERT PASSWORD HERE, SHARE VIA OTHER CHANNELS!
+import pymysql
 
-#host name (eg. XXXXXXXXXXXXXX.us-west-2.rds.amazonaws.com)
-#port number
-#database name
-#username
-#password XXXXX
+host="bt3101.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com"
+port=3306
+dbname="govtech_external"
+user="admin"
+
+conn = pymysql.connect(host, user=user,port=port,
+                           passwd=password, db=dbname)
