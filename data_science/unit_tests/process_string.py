@@ -1,6 +1,7 @@
 import unittest
 import phonenumbers
 import re
+from textblob import TextBlob
 
 #from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 #from pdfminer.converter import TextConverter
@@ -48,12 +49,12 @@ def flagging(raw_text):
                                         '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
                                         , raw_text)
     physical_address = [search_physical_address.group() if search_physical_address is not None else '']
-
+    name = process_name(raw_text).strip()
     return {'nric':nric,
             'email':email_address,
             'phone':phone_number,
-            'address': physical_address,
-            'name': ['ALICE TAN MING NI'] # REPLACE HARD-CODED VALUE
+            'address':physical_address,
+            'name':[name]
             }
 
 def parsing(raw_text, dic):
@@ -81,19 +82,36 @@ def parsing(raw_text, dic):
                             '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
                             '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
                             , '<pii_address>'   
-                            , processed_text)
-    processed_text = re.sub('ALICE TAN MING NI', '<pii_name>', processed_text) # REPLACE HARD-CODED VALUE
-
+                            , processed_text)   
+    processed_text = re.sub(dic['name'][0], '<pii_name>', processed_text) 
+    processed_text = " ".join(processed_text.split())  
+    processed_text = processed_text.replace("#", '') # remove redundant characters
     # if PIIs then remove 
     return processed_text
+
+def process_name(raw_text):
+    """
+      Sub-function within flagging. Identifies Name by extracting the first string of noun/ "JJ" included for Indian Names
+
+      Input:
+          raw_text: Output from convert_to_text(), String Type
+
+      Output: 
+      Name of string type
+      """  
+    sentences = raw_text.split('\n')
+    for i in sentences:
+        blob = TextBlob(i)
+        if len(blob.tags) >=2 and all(tag in ("NNP","NNS", "NN", "JJ") for words,tag in blob.tags):
+            return i    
 
 ###################################################################
 
 class Test(unittest.TestCase):
     
     def test_1(self):
-        raw_text = "Ang Kian Hwee Blk123 Choa Chu Kang Loop #02-34 S680341 \
-        Email: angkianhwee@u.nus.edu EDUCATION \
+        raw_text = "Ang Kian Hwee \n Blk123 Choa Chu Kang Loop #02-34 S680341 \n \
+        \nEmail: angkianhwee@u.nus.edu \n\n EDUCATION\n \
         National University of Singapore (NUS)"
 # Still up for discussion
 #    def test_parsing(self):
@@ -111,38 +129,36 @@ class Test(unittest.TestCase):
         
         # match each key to each value
         test_dic = {'name': ['Ang Kian Hwee'], 'address': ['Blk123 Choa Chu Kang Loop #02-34 S680341'], 
-                    'email': ['angkianhwee@u.nus.edu']}
+                    'email': ['angkianhwee@u.nus.edu'], 'nric':[], 'phone':[]}
         dic_check = True
         pii_keys = ['name', 'address', 'email', 'nric', 'phone']
         for key in pii_keys:
             if dic[key] != test_dic[key]:
                 dic_check = False
-                break
-            
+                break        
         test_string = "<pii_name> <pii_address> Email: <pii_email> EDUCATION National University of Singapore (NUS)"
         if parsed_string == test_string:
             parsed_string_check = True
         else:
-            parsed_string_check = False
+            parsed_string_check = False          
         self.assertTrue(parsed_string_check and dic_check)
         
         
-        
     def test_2(self):
-        raw_text = "ALICE TAN MING NI S4598004D 16 JIAK CHUAN RD, SINGAPORE 089267 \
-        +65 9722 4728 FUNNYGIRL111@AOL.COM HTTPS://LINKEDIN.COM/ALICEELIOT Summary\
-        Experienced Server bringing enthusiasm, dedication and an exceptional work ethic.\
-        Trained in customer service with knowledge of Italy cuisine. High energy and outgoing\
-        with a dedication to positive guest relations. High volume dining customer service, and\
-        cash handling background."
+        raw_text = "ALICE TAN MING NI  \n\n  S4598004D \n\n16 JIAK CHUAN RD, SINGAPORE 089267 \n\n\
+                    +65 9722 4728 # FUNNYGIRL111@AOL.COM # HTTPS://LINKEDIN.COM/ALICEELIOT \n\n \n\nSummary \n\
+                    Experienced Server bringing enthusiasm, dedication and an exceptional work ethic. \
+                    Trained in customer \n service with knowledge of Italy cuisine. High energy and outgoing \
+                    with a dedication to positive guest \nrelations. High volume dining customer service, and \
+                    cash handling background."
+
         dic, parsed_string = process_string(raw_text)
         
         # match each key to each value
         test_dic = {'name': ['ALICE TAN MING NI'], 'nric': ['S4598004D'], 'address': ['16 JIAK CHUAN RD, SINGAPORE 089267'], 
                     'email': ['FUNNYGIRL111@AOL.COM'], 'phone': ['+6597224728']}
         dic_check = True
-        pii_keys = ['name', 'address', 'email', 'nric', 'phone']
-        
+        pii_keys = ['name', 'address', 'email', 'nric', 'phone']       
         for key in pii_keys:
             if dic[key] != test_dic[key]:
                 dic_check = False
@@ -157,12 +173,11 @@ class Test(unittest.TestCase):
         
         # replace multiple spaces between text with single space
         test_string = re.sub(' +', ' ', test_string)
-        parsed_string = re.sub(' +', ' ', parsed_string)
-        
+        parsed_string = re.sub(' +', ' ', parsed_string)        
         if parsed_string == test_string:
             parsed_string_check = True
         else:
-            parsed_string_check = False
+            parsed_string_check = False   
         self.assertTrue(parsed_string_check and dic_check)
    
 # run this line
