@@ -1,8 +1,21 @@
 from flask import Flask, request, jsonify, abort, make_response
 import pymysql, sys
 import db_connection
-sys.path.insert(0, 'data_science/unit_tests')
-import convert_to_text
+import importlib.util
+
+# helper function to import functions to read PDF and flag/mask resume contents
+def module_from_file(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+# convert pdf to string
+convert_to_text = module_from_file("unit_tests", "data_science/unit_tests/convert_to_text.py")
+# flagging and masking 
+process_string = module_from_file("unit_tests", "data_science/unit_tests/process_string.py")
+
+db_connection.upsert({"individual_id": "5", "parsed_content_v2": "Updated_Text for user id 5"})
 
 # TEST COMMANDS
 # curl POST -d "filepath='data_science/unit_tests/sample_resumes/kh_resume.pdf'&raw_contents=Ang Kian Hwee is the greatest!" 192.168.99.100:5000/upload/

@@ -33,7 +33,7 @@ def select():
         cur = conn.cursor() # we create a cursor. The cursor is used to traverse the records from the result set.
         cur.execute(SELECTsql)
         rows = cur.fetchall()
-        pprint(rows)
+        # pprint(rows)
     return rows
 
 # UPSERT - not upskirt :D
