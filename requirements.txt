@@ -2,6 +2,7 @@
 # this allows us to quickly install them into a virtual environment where we can just type
 # pip install -r requirements.txt and get everything we need for this project.
 
+<<<<<<< HEAD
 # the following are just examples and not for this pii project:
 requests==2.20.0
 jsonschema==2.6.0
@@ -13,3 +14,13 @@ python-telegram-bot==11.1.0
 spacy == ?
 pdfminer.six == ?
 nltk == ?
+=======
+Flask==0.12.2
+flask_restful==0.3.7
+requests==2.20.0
+jsonschema==2.6.0
+simplejson==3.16.0
+spacy == 2.1.8
+pdfminer.six == 20181108
+nltk == 3.4.5
+>>>>>>> 5e81d1ad4ddf8757fda96ce831445ac27f4d4aaf

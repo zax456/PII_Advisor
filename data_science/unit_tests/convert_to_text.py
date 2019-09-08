@@ -59,21 +59,33 @@ directory = os.getcwd()
 directory
 
 class Test(unittest.TestCase):
+        
+    def contains_word(s, w):
+        return f' {w} ' in f' {s} '
 
-    def test_convert_to_text(self):
-        actual = convert_to_text(directory + '/sample_resumes/' + "kh_resume_pdf1.pdf")
-        expected = "Ang Kian Hwee Blk123 Choa Chu Kang Loop #02-34 S680341 Email: angkianhwee@u.nus.edu EDUCATION \
-        National University of Singapore (NUS) Bachelor of Science (Business Analytics), Honours \
-        Aug 2016 – present 25 years old NRIC: S1234567A Relevant Coursework: Data Management and Chinese, \
-        Business and Technical Communication, Application Systems Development for Business Analytics, Regression Analysis,\
-        Data Structure & Algorithms (Python, Java), Mining Web Data for Business Insights, Operations Research, Capstone Project,\
-        Computational Methods for BA Expected Date of Graduation: December 2019"
-        self.assertEqual(actual, expected)
-
-    def test_convert_to_text_dir(self):
-        actual = convert_to_text_dir("/test_folder")
-        expected = ["Not sure what your python lib to parse pdf to text will return", 
-                    "Not sure what your python lib to parse pdf to text will return"]
-        self.assertEqual(actual, expected)
+    def test_1(self):
+        actual = convert_to_text(directory + '/sample_resumes/' + "kh_resume.pdf")
+#        this is 1 test case that will pass the test case
+#        actual = "Ang Kian Hwee Blk123 Choa Chu Kang Loop #02-34 S680341 Email: angkianhwee@u.nus.edu EDUCATION \
+#        National University of Singapore (NUS) Bachelor of Science (Business Analytics), Honours \
+#        Aug 2016 – present 25 years old NRIC: S1234567A Relevant Coursework: Data Management and Chinese, \
+#        Business and Technical Communication, Application Systems Development for Business Analytics, Regression Analysis,\
+#        Data Structure & Algorithms (Python, Java), Mining Web Data for Business Insights, Operations Research, Capstone Project,\
+#        Computational Methods for BA Expected Date of Graduation: December 2019"
+        actual = actual.lower()
+        found = True
+        phrases = ['ang kian hwee', 'blk123 choa chu kang loop #02-34 s680341', 'email: angkianhwee@u.nus.edu', 'education',
+           'national university of singapore (nus)', 'bachelor of science (business analytics), honours', 'aug 2016 – present',
+           '25 years old', 'nric: s1234567a', 'relevant coursework: data management and chinese,', 'business and technical communication,',
+           'application systems development for business analytics,', 'regression analysis,', 'data structure & algorithms (python, java),',
+           'mining web data for business insights, operations research,', 'capstone project,', 
+           'computational methods for ba', 'expected date of graduation: december 2019']
+        for p in phrases:
+            print(p)
+            found = contains_word(actual, p) and found
+            
+            if not found:
+                break
+        self.assertTrue(found)
         
 unittest.main(verbosity=2)

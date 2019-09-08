@@ -26,7 +26,8 @@ def process_string(raw_text):
 	"""
     PIIs = flagging(raw_text)
     parse_text = parsing(raw_text, PIIs)
-    return ("Successfully processed and uploaded resume into database!")
+    return PIIs, parse_text # for testing purposes only...remove this after confirming process_string works
+    # return ("Successfully processed and uploaded resume into database!")
 
 def flagging(raw_text):
     """
@@ -34,15 +35,13 @@ def flagging(raw_text):
 
       Input: Output from convert_to_text()
 
-      Output: returns an array of unique PIIs / returns a dictionary PIIs 
+      Output: returns an array of unique PIIs / returns a dictionary of lists of PIIs (there might be more than 1 value for 1 key, for exmaple giving home + personal phone number)
 	"""
     nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
     email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
     phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(text, "SG")] 
 
     return {'nric':nric, 'email':email_address, 'phone':phone_number} #e.g. {'email': ['angkianhwee@u.nus.edu'], 'nric': ['S1234567A']}
-
-
 
 def parsing(raw_text, dic):
     """
@@ -70,18 +69,10 @@ def parsing(raw_text, dic):
 
 class Test(unittest.TestCase):
     
-    def test_process_string(self):
+    def test_1(self):
         raw_text = "Ang Kian Hwee Blk123 Choa Chu Kang Loop #02-34 S680341 \
         Email: angkianhwee@u.nus.edu EDUCATION \
         National University of Singapore (NUS)"
-        actual = process_string(raw_text)
-        expected = {'Ang Kian Hwee' : 'name', 'Blk123 Choa Chu Kang Loop #02-34' : 'address', 
-                    'S680341' : 'nric', 'angkianhwee@u.nus.edu' : 'email'} , 
-                    "<pii_name> <pii_address> <pii_nric> \
-        Email: <pii_email> EDUCATION \
-        National University of Singapore (NUS)"
-        self.assertEqual(actual, expected)
-
 # Still up for discussion
 #    def test_parsing(self):
 #        actual = parsing("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah", 
@@ -94,6 +85,59 @@ class Test(unittest.TestCase):
 #        actual = flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah")
 #        expected = ["Ang Kian Hwee", "25", "S1234567A"]
 #        self.assertEqual(actual, expected)
+        dic, parsed_string = process_string(raw_text)
+        
+        # match each key to each value
+        test_dic = {'name': ['Ang Kian Hwee'], 'address': ['Blk123 Choa Chu Kang Loop #02-34 S680341'], 
+                    'email': ['angkianhwee@u.nus.edu']}
+        dic_check = True
+        pii_keys = ['name', 'address', 'email', 'nric', 'phone']
+        for key in pii_keys:
+            if dic[key] != test_dic[key]:
+                dic_check = False
+                break
+            
+        test_string = "<pii_name> <pii_address> Email: <pii_email> EDUCATION National University of Singapore (NUS)"
+        if parsed_string == test_string:
+            parsed_string_check = True
+        else:
+            parsed_string_check = False
+        self.assertTrue(parsed_string_check and dic_check)
         
         
+        
+    def test_2(self):
+        raw_text = "ALICE TAN MING NI S4598004D 16 JIAK CHUAN RD, SINGAPORE 089267 \
+        +65 9722 4728 FUNNYGIRL111@AOL.COM HTTPS://LINKEDIN.COM/ALICEELIOT Summary\
+        Experienced Server bringing enthusiasm, dedication and an exceptional work ethic.\
+        Trained in customer service with knowledge of Italy cuisine. High energy and outgoing\
+        with a dedication to positive guest relations. High volume dining customer service, and\
+        cash handling background."
+        dic, parsed_string = process_string(raw_text)
+        
+        # match each key to each value
+        test_dic = {'name': ['ALICE TAN MING NI'], 'nric': ['S4598004D'], 'address': ['16 JIAK CHUAN RD, SINGAPORE 089267'], 
+                    'email': ['angkianhwee@u.nus.edu'], 'phone': ['+65 9722 4728']}
+        dic_check = True
+        pii_keys = ['name', 'address', 'email', 'nric', 'phone']
+        for key in pii_keys:
+            if dic[key] != test_dic[key]:
+                dic_check = False
+                break
+            
+        test_string = "<pii_name> <pii_nric>  <pii_address> \
+        <pii_phone> <pii_email> HTTPS://LINKEDIN.COM/ALICEELIOT Summary\
+        Experienced Server bringing enthusiasm, dedication and an exceptional work ethic.\
+        Trained in customer service with knowledge of Italy cuisine. High energy and outgoing\
+        with a dedication to positive guest relations. High volume dining customer service, and\
+        cash handling background."
+        if parsed_string == test_string:
+            parsed_string_check = True
+        else:
+            parsed_string_check = False
+        self.assertTrue(parsed_string_check and dic_check)
+   
+# run this line
 unittest.main(verbosity=2)
+
+        
