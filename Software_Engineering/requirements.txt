@@ -1,3 +1,4 @@
 # Purpose: tell docker what packages and their versions are needed to run the Python script
  Flask==0.12.2
  flask_restful==0.3.7
+ pymysql==0.9.3

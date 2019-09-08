@@ -59,10 +59,10 @@ def convert_to_text_dir(dir, directory = True):
 directory = os.getcwd()
 directory
 
+def contains_word(s, w):
+    return f' {w} ' in f' {s} '
+
 class Test(unittest.TestCase):
-        
-    def contains_word(s, w):
-        return f' {w} ' in f' {s} '
 
     def test_1(self):
         actual = convert_to_text(directory + '/sample_resumes/' + "kh_resume.pdf")
@@ -89,4 +89,4 @@ class Test(unittest.TestCase):
                 break
         self.assertTrue(found)
         
-unittest.main(verbosity=2)
+# unittest.main(verbosity=2)
