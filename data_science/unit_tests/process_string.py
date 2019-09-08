@@ -1,5 +1,5 @@
 import unittest
-
+#import phonenumbers
 #import re
 
 #from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -39,7 +39,9 @@ def flagging(raw_text):
 	"""
     nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
     email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
-    return  #e.g. {'email': ['angkianhwee@u.nus.edu'], 'nric': ['S1234567A']}
+    phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(text, "SG")] 
+
+    return {'nric':nric, 'email':email_address, 'phone':phone_number} #e.g. {'email': ['angkianhwee@u.nus.edu'], 'nric': ['S1234567A']}
 
 def parsing(raw_text, dic):
     """
@@ -54,8 +56,12 @@ def parsing(raw_text, dic):
     """
     processed_text = raw_text
     # Removing hard PIIs by default: NRIC, email address, phone, physical address
-    processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii_email>', processed_text)
-    processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii_nric>', processed_text)
+    processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii: email>', processed_text)
+    processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii: nric>', processed_text)
+    phone_number_raw = [match.raw_string for match in phonenumbers.PhoneNumberMatcher(text, "SG")] 
+	for num in phone_number_raw:
+    	processed_text=processed_text.replace(num, "<pii: phone>")
+
     # if PIIs then remove 
     return processed_text
 
@@ -67,6 +73,18 @@ class Test(unittest.TestCase):
         raw_text = "Ang Kian Hwee Blk123 Choa Chu Kang Loop #02-34 S680341 \
         Email: angkianhwee@u.nus.edu EDUCATION \
         National University of Singapore (NUS)"
+# Still up for discussion
+#    def test_parsing(self):
+#        actual = parsing("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah", 
+#                        flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah"))
+#
+#        expected = "Name: <pii: Name> \nAge: <pii: Age> \nNRIC: <pii: NRIC> \nSkills: Blah blah \nWorking Experience: Blah Blah"
+#        self.assertEqual(actual, expected)
+#        
+#    def test_flagging(self):
+#        actual = flagging("Name: Ang Kian Hwee \nAge: 25 \nNRIC: S1234567A \nSkills: Blah blah \nWorking Experience: Blah Blah")
+#        expected = ["Ang Kian Hwee", "25", "S1234567A"]
+#        self.assertEqual(actual, expected)
         dic, parsed_string = process_string(raw_text)
         
         # match each key to each value

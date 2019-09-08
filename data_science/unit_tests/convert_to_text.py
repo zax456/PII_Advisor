@@ -6,7 +6,6 @@ from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import StringIO
-import os
 
 
 def convert_to_text(filepath):
