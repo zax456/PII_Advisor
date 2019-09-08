@@ -1,22 +1,8 @@
 from flask import Flask, request, jsonify, abort, make_response
-import pymysql
-
-from data_science.unit_tests.convert_to_text import convert_to_text
-
-host="bt3101.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com"
-port=3306
-dbname="govtech_external"
-user="admin"
-
-conn = pymysql.connect(host, user=user, port=port, passwd="capstone123!", db=dbname)
-
-with conn:
-    cur = conn.cursor()
-    cur.execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES")
-
-    rows = cur.fetchall()
-
-    print(rows)
+import pymysql, sys
+import db_connection
+sys.path.insert(0, 'data_science/unit_tests')
+import convert_to_text
 
 # TEST COMMANDS
 # curl POST -d "filepath='data_science/unit_tests/sample_resumes/kh_resume.pdf'&raw_contents=Ang Kian Hwee is the greatest!" 192.168.99.100:5000/upload/
@@ -36,17 +22,13 @@ app = Flask(__name__)
 # output: flagged PIIs, filtered contents, operation type, job id in JSON format
 @app.route('/upload/', methods=['POST'])
 def read_resume(filepath):
-    # conn = db_connect.connect() # connect to database
-    # query = conn.execute("select * from employees") # This line performs query and returns json result
-
-    ## Process the raw contents of the document - flagging, masking
-    raw_text = convert_to_text(request.files.get(filepath))
+    # Insert convert_to_text op here
 
     # Insert flagging of PIIs op here
 
     # Insert masking of PIIs op here
 
-    task = {"raw text": raw_text}
+    task = {"raw text": "placeholder"}
     return jsonify(task), 201
 
 # function to flag out PIIs and mask contents
@@ -54,8 +36,8 @@ def read_resume(filepath):
 # output: JSON object with PIIs and Parsed contents
 def process_text(contents):
     result = {
-        'PIIs': contents['piis'],
-        'Parsed contents': contents['raw_contents']
+        'PIIs': "flagged PIIs",
+        'Parsed contents': "parsed text"
     }
     return result
 
