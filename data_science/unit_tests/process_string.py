@@ -1,6 +1,6 @@
 import unittest
-#import phonenumbers
-#import re
+import phonenumbers
+import re
 
 #from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 #from pdfminer.converter import TextConverter
@@ -39,9 +39,17 @@ def flagging(raw_text):
 	"""
     nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
     email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
-    phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(text, "SG")] 
+    phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(raw_text, "SG")] 
+    search_physical_address = re.search('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
+                                        '[\s]?' +
+                                        '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
+                                        '[\s]' +
+                                        '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
+                                        '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
+                                        , raw_text)
+    physical_address = [search_physical_address if search_physical_address is not None else '']
 
-    return {'nric':nric, 'email':email_address, 'phone':phone_number} #e.g. {'email': ['angkianhwee@u.nus.edu'], 'nric': ['S1234567A']}
+    return {'nric':nric, 'email':email_address, 'phone':phone_number, 'physical_address': physical_address, 'name': 'REPLACE_W_VARIABLE_NAME'}#, 'physical_address': physical_address} #e.g. {'email': ['angkianhwee@u.nus.edu'], 'nric': ['S1234567A']}
 
 def parsing(raw_text, dic):
     """
@@ -58,9 +66,17 @@ def parsing(raw_text, dic):
     # Removing hard PIIs by default: NRIC, email address, phone, physical address
     processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii: email>', processed_text)
     processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii: nric>', processed_text)
-    phone_number_raw = [match.raw_string for match in phonenumbers.PhoneNumberMatcher(text, "SG")] 
-	for num in phone_number_raw:
-    	processed_text=processed_text.replace(num, "<pii: phone>")
+    phone_number_raw = [match.raw_string for match in phonenumbers.PhoneNumberMatcher(processed_text, "SG")] 
+    for num in phone_number_raw:
+        processed_text=processed_text.replace(num, "<pii: phone>")
+    processed_text = re.sub('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
+                            '[\s]?' +
+                            '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
+                            '[\s]' +
+                            '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
+                            '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
+                            , '<pii: address>'   
+                            , processed_text)
 
     # if PIIs then remove 
     return processed_text
