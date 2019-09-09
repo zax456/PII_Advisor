@@ -4,6 +4,8 @@
 4. Change working directory to folder which was downloaded previously in the terminal
 5. Run the command: "docker build -t first_docker ."
 6. Run the command: "docker run --rm -p 5000:80 first_docker" to run the image created previously
+7. If reading files from external drives, run this command: "docker run -p 5000:80 -v path/to/resume_folder:path/to/name_of_app image_name"
+    E.g. "docker run -p 5000:80 -v D:\AKH_Folder\Work\University\Year 4 Sem 1\BT3101 Business Analytics Capstone Project\pii\data_science\unit_tests\sample_resumes:usr/src/app python:3-onbuild"
 
 
 # To restart container
