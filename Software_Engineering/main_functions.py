@@ -1,8 +1,32 @@
-from flask import Flask, request, jsonify, abort, make_response
-import time
+from flask import Flask, request, jsonify, abort, make_response, json
+import pymysql, sys
+import importlib.util
+from db_connection import db_connection
+import convert_to_text
+import process_string
+
+# docker run -v D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests:/usr/src/app first_docker
+
+# helper function to import functions to read PDF and flag/mask resume contents
+def module_from_file(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+# convert pdf to string
+# convert_to_text = module_from_file("unit_tests", "data_science/unit_tests/convert_to_text.py")
+# flagging and masking 
+# process_string = module_from_file("unit_tests", "data_science/unit_tests/process_string.py")
+# database functions
+# db_functions = module_from_file("Software_Engineering", "Software_Engineering/db_connections.py")
+
+db_functions = db_connection()
 
 # TEST COMMANDS
-# curl POST -d "piis=['Male', '22']&raw_contents=Ang Kian Hwee is the greatest!" 192.168.99.100:5000/upload/
+# curl POST -d "filepath="D:/AKH_Folder/Work/University/'Year 4 Sem 1'/'BT3101 Business Analytics Capstone Project'/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"" 192.168.99.100:5000/upload/
+
+# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"}'
 
 ## Note list
 # users may re-upload their resumes. This generates a new job ID everytime they upload a new resume. 
@@ -11,32 +35,6 @@ import time
 
 app = Flask(__name__)
 
-# FOR TESTING PURPOSES - REMOVE THIS AFTER ESTABLISHING DATABASE
-tasks = [
-    {
-        'job_id': 1,
-        'operation': {
-            'Scan': {
-                'PII': ['Male', 'S1234567A', 'abc@gmail.com', 'PES F']
-                }, 
-            'Purge': {
-                'Contents': "Peter Tay, MSe in Electrical Engineering"
-                }
-            }
-    },
-    {
-        'job_id': 2,
-        'operation': {
-            'Scan': {
-                'PII': ['Female', 'S1234568B', 'Maid', '23'] 
-                }, 
-            'Purge': {
-                'Contents': "Mary Tan, BSc in Data Analytics"
-                }
-            }
-    }
-]
-
 # This function sends the uploaded resume to our scanning and masking functions 
 # which will flag out PIIs and mask them inside the resume
 # they will return both the flagged PIIs or masked contents back 
@@ -44,51 +42,16 @@ tasks = [
 # input: operation to be applied on Resume
 # output: flagged PIIs, filtered contents, operation type, job id in JSON format
 @app.route('/upload/', methods=['POST'])
-def read_resume():
-    # conn = db_connect.connect() # connect to database
-    # query = conn.execute("select * from employees") # This line performs query and returns json result
+def process_resume():
 
-    ## Process the raw contents of the document - flagging, masking
-    # remove this line after discussion on how to read raw document
-    processed_text = process_text({'piis': request.form.get('piis'), 
-                                   'raw_contents': request.form.get('raw_contents')}) 
-    piis = processed_text['PIIs']
-    parsed_contents = processed_text['Parsed contents']
+    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
 
-    task = {
-        'job_id': tasks[-1]['job_id'] + 1,
-        'operation': {
-            'Scan': {
-                'PII': piis
-                }, 
-            'Purge': {
-                'Contents': parsed_contents
-                }
-            }
-    }
-    tasks.append(task)
+    PIIs, parsed_contents = process_string.process_string(raw_contents)
+
+    task = {"raw text": raw_contents, 
+            "PIIs": PIIs, 
+            "parsed_contents": parsed_contents}
     return jsonify(task), 201
-
-# function to flag out PIIs and mask contents
-# input: raw text from document
-# output: JSON object with PIIs and Parsed contents
-def process_text(contents):
-    result = {
-        'PIIs': contents['piis'],
-        'Parsed contents': contents['raw_contents']
-    }
-    return result
-
-# This function gets the flagged PIIs and masked contents using the job id
-# input: operation to be applied on Resume
-# output: flagged PIIs, filtered contents, operation type, job id in JSON format
-@app.route('/<int:job_id>', methods=['GET'])
-def get_job(job_id):
-    task = [task for task in tasks if task['job_id'] == job_id]
-    if len(task) == 0:
-        abort(404)
-
-    return jsonify(task[0])
 
 # Return error 404 in JSON format
 @app.errorhandler(404)
@@ -97,3 +60,14 @@ def not_found(error):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+# function to flag out PIIs and mask contents
+# input: raw text from document
+# output: JSON object with PIIs and Parsed contents
+# def process_text(contents):
+#     result = {
+#         'PIIs': "flagged PIIs",
+#         'Parsed contents': "parsed text"
+#     }
+#     return result

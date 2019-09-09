@@ -1,3 +1,11 @@
 # Purpose: tell docker what packages and their versions are needed to run the Python script
- Flask==0.12.2
- flask_restful==0.3.7
+Flask==0.12.2
+flask_restful==0.3.7
+pymysql==0.9.3
+# requests==2.20.0
+# jsonschema==2.6.0
+# simplejson==3.16.0
+# spacy == 2.1.8
+pdfminer.six == 20181108
+chardet == 3.0.4
+nltk == 3.4.5
