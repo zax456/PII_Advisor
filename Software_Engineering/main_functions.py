@@ -4,15 +4,16 @@ import importlib.util
 from db_connection import db_connection
 import convert_to_text
 import process_string
+db_functions = db_connection()
 
 # docker run -v D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests:/usr/src/app first_docker
 
 # helper function to import functions to read PDF and flag/mask resume contents
-def module_from_file(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+# def module_from_file(module_name, file_path):
+#     spec = importlib.util.spec_from_file_location(module_name, file_path)
+#     module = importlib.util.module_from_spec(spec)
+#     spec.loader.exec_module(module)
+#     return module
 
 # convert pdf to string
 # convert_to_text = module_from_file("unit_tests", "data_science/unit_tests/convert_to_text.py")
@@ -20,8 +21,6 @@ def module_from_file(module_name, file_path):
 # process_string = module_from_file("unit_tests", "data_science/unit_tests/process_string.py")
 # database functions
 # db_functions = module_from_file("Software_Engineering", "Software_Engineering/db_connections.py")
-
-db_functions = db_connection()
 
 # TEST COMMANDS
 # curl POST -d "filepath="D:/AKH_Folder/Work/University/'Year 4 Sem 1'/'BT3101 Business Analytics Capstone Project'/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"" 192.168.99.100:5000/upload/
@@ -50,7 +49,10 @@ def process_resume():
 
     task = {"raw text": raw_contents, 
             "PIIs": PIIs, 
-            "parsed_contents": parsed_contents}
+            "parsed_content_v2": parsed_contents} # will need to add in more columns next time. E.g. date scanned
+
+    db_functions.upsert(task) # call upsert function to insert/update parsed resume into database
+
     return jsonify(task), 201
 
 # Return error 404 in JSON format
