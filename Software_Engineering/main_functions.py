@@ -15,17 +15,12 @@ db_functions = db_connection()
 #     spec.loader.exec_module(module)
 #     return module
 
-# convert pdf to string
-# convert_to_text = module_from_file("unit_tests", "data_science/unit_tests/convert_to_text.py")
-# flagging and masking 
-# process_string = module_from_file("unit_tests", "data_science/unit_tests/process_string.py")
-# database functions
-# db_functions = module_from_file("Software_Engineering", "Software_Engineering/db_connections.py")
-
 # TEST COMMANDS
 # curl POST -d "filepath="D:/AKH_Folder/Work/University/'Year 4 Sem 1'/'BT3101 Business Analytics Capstone Project'/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"" 192.168.99.100:5000/upload/
 
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"}'
+# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
+# curl -X POST http://192.168.99.100:5000/ -d "{'filepath': 'kh_resume_pdf_1.pdf'}" -H 'Content-Type: application/json'
 
 ## Note list
 # users may re-upload their resumes. This generates a new job ID everytime they upload a new resume. 
@@ -34,22 +29,33 @@ db_functions = db_connection()
 
 app = Flask(__name__)
 
+@app.route('/', methods=['POST', 'GET'])
+def test_fun():
+
+    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+
+    return raw_contents
+
 # This function sends the uploaded resume to our scanning and masking functions 
 # which will flag out PIIs and mask them inside the resume
 # they will return both the flagged PIIs or masked contents back 
 # after which, it will generate a job id and store the contents inside the database
 # input: operation to be applied on Resume
 # output: flagged PIIs, filtered contents, operation type, job id in JSON format
-@app.route('/upload/', methods=['POST'])
+@app.route('/upload/', methods=['POST', 'GET'])
 def process_resume():
 
     raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
 
-    PIIs, parsed_contents = process_string.process_string(raw_contents)
+    # PIIs, parsed_contents = process_string.process_string(raw_contents)
 
-    task = {"raw text": raw_contents, 
-            "PIIs": PIIs, 
-            "parsed_content_v2": parsed_contents} # will need to add in more columns next time. E.g. date scanned
+    task = {"individual_id": "5",
+            "parsed_content_v2": raw_contents}
+
+    # task = {"individual_id": "5",
+    #         "raw text": raw_contents, 
+    #         "PIIs": PIIs, 
+    #         "parsed_content_v2": parsed_contents} # will need to add in more columns next time. E.g. date scanned
 
     db_functions.upsert(task) # call upsert function to insert/update parsed resume into database
 

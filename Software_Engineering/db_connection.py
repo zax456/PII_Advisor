@@ -4,7 +4,7 @@ from pprint import pprint
 class db_connection():
 
     def __init__(self): 
-        self.host = "bt3101.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com"
+        self.host = "bt3101-govtech.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com"
         self.port=3306
         self.dbname="govtech_external"
         self.user="admin"
@@ -47,6 +47,7 @@ class db_connection():
             if (len(rows) == 0):
                 # insert 
                 cur.execute(self.INSERTsql, (record["individual_id"], record["parsed_content_v2"] ) )
+                print("inserted sucessfully!")
             else:
                 for key, value in record.items():
                     if (key == "individual_id"):
@@ -54,8 +55,8 @@ class db_connection():
                     # rest_of_update_str = "SET {} = {} WHERE individual_id = {}".format(key, value, record["individual_id"])
                     rest_of_update_str = "SET {} = '{}' WHERE individual_id = '{}'".format(key, str(value), str(record["individual_id"]))
                     s = self.UPDATEsql + rest_of_update_str
-                    print(s)
                     cur.execute(s)
+                    print("Update sucessfully!")
 
             self.conn.commit()
 
