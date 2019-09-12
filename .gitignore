@@ -21,6 +21,7 @@ Software_Engineering/database_config.ini
 /libpeerconnection.log
 npm-debug.log
 testem.log
+/vscode/
 
 #----------------------------------------------------------------------------
 # DIVSHOT

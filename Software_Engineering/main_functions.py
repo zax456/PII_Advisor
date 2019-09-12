@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, abort, make_response, json
 import pymysql, sys
-import importlib.util
+import datetime as dt
+import re
+# import importlib.util
 from db_connection import db_connection
 import convert_to_text
 import process_string
@@ -49,8 +51,27 @@ def process_resume():
 
     # PIIs, parsed_contents = process_string.process_string(raw_contents)
 
-    task = {"individual_id": "5",
-            "parsed_content_v2": raw_contents}
+    full_filename = request.json["filepath"].lower().split('/')[-1]
+    filename = full_filename.split('.')[0]
+    file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
+    individual_id = "1"
+    # individual_id = get_user_id() # TO BE Implemented later
+
+    task = {
+        "individual_id": individual_id,
+        "file_name": filename,
+        "file_extension": file_extension,
+        "file_size": 3,
+        "document_category": "Secret",
+        "is_default": 1,
+        "file_path": request.json["filepath"],
+        "created_by": individual_id,
+        "created_on": dt.datetime.now(),
+        "modified_by": individual_id,
+        "modified_on": 3,
+        "parsed_content": "Placeholder contents",
+        "parsed_content_v2": raw_contents,
+        }
 
     # task = {"individual_id": "5",
     #         "raw text": raw_contents, 
