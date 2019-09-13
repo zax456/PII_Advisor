@@ -1,0 +1,35 @@
+1. Obtain the RSA public and private key files from your friendly SWE peeps
+2. Place both files in your ~/.ssh directory
+3. Create a config file in your ~/.ssh directory
+	i.e. type the following in your terminal `vi config`
+4. Add the following to your newly created config file:
+```
+Host bt3101
+  User tony
+  IdentityFile ~/.ssh/bt3101_rsa
+  PreferredAuthentications publickey
+  ForwardAgent no
+  Port 53101
+  Hostname 18.140.160.230
+```
+5. Type `ssh bt3101` in your terminal
+	- if all goes well, you should be prompted with a question where you can type yes/no. type `yes`
+	- upon successful login, a message similar to the following will be seen: `Last login: Thu Sep 12 12:25:57 2019 from 202.166.10.153`
+	- otherwise, refer below for possible debugging actions
+
+
+
+Error #1
+
+- Description
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0644 for '/home/leecy/.ssh/bt3101_rsa' are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+Load key "/home/leecy/.ssh/bt3101_rsa": bad permissions
+tony@18.140.160.230: Permission denied (publickey).
+
+- Solution
+`chmod 600 bt3101_rsa`
