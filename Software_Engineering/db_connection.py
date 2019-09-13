@@ -38,7 +38,7 @@ class db_connection():
 
     # function - insert newly scanned resumes
     # input: JSON object containing 1) string raw text, 2) dict flagged PIIs, 3) string parsed text, 4) user id
-    def _insert(self, record):
+    def insert(self, record):
         with self._conn:
             cur = self._conn.cursor()
 
@@ -71,7 +71,7 @@ class db_connection():
     # TODO
     # function: update existing record column(s)
     # input: JSON object - is_default, is_delete, modified_by, modified_on
-    def _update(self, record):
+    def update(self, record):
         '''
         Need more specifications from Joseph on this b4 i start coding
         '''

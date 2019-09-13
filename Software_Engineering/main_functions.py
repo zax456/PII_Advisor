@@ -73,12 +73,7 @@ def process_resume():
         "parsed_content_v2": raw_contents,
         }
 
-    # task = {"individual_id": "5",
-    #         "raw text": raw_contents, 
-    #         "PIIs": PIIs, 
-    #         "parsed_content_v2": parsed_contents} # will need to add in more columns next time. E.g. date scanned
-
-    db_functions.upsert(task) # call upsert function to insert/update parsed resume into database
+    db_functions.insert(task) # call upsert function to insert/update parsed resume into database
 
     return jsonify(task), 201
 
