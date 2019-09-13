@@ -1,5 +1,11 @@
 # Database config file
+data_engineering/config.txt
 Software_Engineering/database_config.ini
+
+# __pycache__ folder
+data_science/unit_tests/__pycache__
+Software_Engineering/__pycache__
+
 
 #----------------------------------------------------------------------------
 # EMBER-CLI DEFAULT
