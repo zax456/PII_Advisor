@@ -1,6 +1,6 @@
 import unittest
 
-#import re
+import re
 
 #from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 #from pdfminer.converter import TextConverter
@@ -39,7 +39,7 @@ def flagging(raw_text):
 	"""
     nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
     email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
-    return  #e.g. {'email': ['angkianhwee@u.nus.edu'], 'nric': ['S1234567A']}
+    return {'email': [email_address], 'nric': [nric]}
 
 def parsing(raw_text, dic):
     """

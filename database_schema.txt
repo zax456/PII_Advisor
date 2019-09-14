@@ -1,0 +1,17 @@
+CREATE TABLE `jobseeker_documents` (
+  `id` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `individual_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_extension` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_size` int(11) DEFAULT NULL,
+  `document_category` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_default` tinyint(1) DEFAULT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_by` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_on` datetime DEFAULT NULL,
+  `modified_by` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `modified_on` datetime DEFAULT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `parsed_content` longtext COLLATE utf8mb4_unicode_ci,
+  `parsed_content_v2` longtext COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`id`)
