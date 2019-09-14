@@ -17,12 +17,22 @@ db_functions = db_connection()
 #     spec.loader.exec_module(module)
 #     return module
 
+# convert pdf to string
+# convert_to_text = module_from_file("unit_tests", "data_science/unit_tests/convert_to_text.py")
+# flagging and masking 
+# process_string = module_from_file("unit_tests", "data_science/unit_tests/process_string.py")
+# database functions
+# db_functions = module_from_file("Software_Engineering", "Software_Engineering/db_connections.py")
+
 # TEST COMMANDS
 # curl POST -d "filepath="D:/AKH_Folder/Work/University/'Year 4 Sem 1'/'BT3101 Business Analytics Capstone Project'/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"" 192.168.99.100:5000/upload/
 
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 # curl -X POST http://192.168.99.100:5000/ -d "{'filepath': 'kh_resume_pdf_1.pdf'}" -H 'Content-Type: application/json'
+
+# docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
+
 
 ## Note list
 # users may re-upload their resumes. This generates a new job ID everytime they upload a new resume. 
