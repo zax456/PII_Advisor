@@ -18,13 +18,16 @@ class db_connection():
                                         )
 
         ## SQL statements
-        self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('rds_database', 'tablename'), 
-                                                                    self._config.getint('rds_database', 'time_interval'))
-        self.DELETEsql = self._config.get('sql_queries', 'truncate') %self._config.get('rds_database', 'tablename')
+        # self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('rds_database', 'tablename'), 
+        #                                                             self._config.getint('rds_database', 'time_interval'))
+
+        self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('rds_database', 'tablename'))
+
+        # self.DELETEsql = self._config.get('sql_queries', 'truncate') %self._config.get('rds_database', 'tablename')
 
         self.INSERTsql = self._config.get('sql_queries', 'insert')
 
-        self.UPDATEsql = self._config.get('sql_queries', 'update')
+        # self.UPDATEsql = self._config.get('sql_queries', 'update')
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
@@ -80,14 +83,14 @@ class db_connection():
     # DELETE all records and reset PK
     # input: string user id
     # output: nil
-    def _delete(self):
-        with self._conn:
-            cur = self._conn.cursor()
-            cur.execute(self.DELETEsql)
-        print("Table reset sucessfully!")
+    # def _delete(self):
+    #     with self._conn:
+    #         cur = self._conn.cursor()
+    #         cur.execute(self.DELETEsql)
+    #     print("Table reset sucessfully!")
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-# db = db_connection()
+db = db_connection()
 # fake_data = [
 #     {
 #         "individual_id": "Ang Kian Hwee",
@@ -191,7 +194,27 @@ class db_connection():
 #         Computational Methods for BA Expected Date of Graduation: December 2019",
 #         } 
 #     ]
-# for record in fake_data:
-#     db.insert(record)
+
+fake_data = [
+    {
+        "individual_id": "Testing_ID",
+        "file_name": "Testing_PDF",
+        "file_extension": "pdf",
+        "file_size": 3,
+        "document_category": "Secret",
+        "is_default": 1,
+        "file_path": "data_science/unit_tests/sample_resumes/AngKianHwee.pdf",
+        "created_by": "Ang Kian Hwee",
+        "created_on": dt.datetime(2019, 9, 1, 15, 35, 46),
+        "modified_by": "Ang Kian Hwee",
+        "modified_on": dt.datetime(2019, 9, 1, 15, 35, 46),
+        "is_deleted": 0,
+        "parsed_content": "Placeholder contents",
+        "parsed_content_v2": "Test parsed v2",
+        }
+]
+
+for record in fake_data:
+    db.insert(record)
 # db.delete()
 # pprint(db.select_test())
