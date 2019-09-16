@@ -64,7 +64,7 @@ def process_resume():
     full_filename = request.json["filepath"].lower().split('/')[-1]
     filename = full_filename.split('.')[0]
     file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
-    individual_id = "1"
+    individual_id = "ID_testing"
     # individual_id = get_user_id() # TO BE Implemented later
 
     task = {
