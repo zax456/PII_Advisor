@@ -7,31 +7,12 @@ from db_connection_READ import db_connection_READ
 from db_connection_WRITE import db_connection_WRITE
 import convert_to_text
 import process_string
-db_function_read = db_connection_READ()
-db_function_write = db_connection_WRITE()
-
-# docker run -v D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests:/usr/src/app first_docker
-
-# helper function to import functions to read PDF and flag/mask resume contents
-# def module_from_file(module_name, file_path):
-#     spec = importlib.util.spec_from_file_location(module_name, file_path)
-#     module = importlib.util.module_from_spec(spec)
-#     spec.loader.exec_module(module)
-#     return module
-
-# convert pdf to string
-# convert_to_text = module_from_file("unit_tests", "data_science/unit_tests/convert_to_text.py")
-# flagging and masking 
-# process_string = module_from_file("unit_tests", "data_science/unit_tests/process_string.py")
-# database functions
-# db_functions = module_from_file("Software_Engineering", "Software_Engineering/db_connections.py")
+# db_function_read = db_connection_READ("database_READ_config.ini")
+# db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 # TEST COMMANDS
-# curl POST -d "filepath="D:/AKH_Folder/Work/University/'Year 4 Sem 1'/'BT3101 Business Analytics Capstone Project'/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"" 192.168.99.100:5000/upload/
-
-# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests/sample_resumes/kh_resume.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
-# curl -X POST http://192.168.99.100:5000/ -d "{'filepath': 'kh_resume_pdf_1.pdf'}" -H 'Content-Type: application/json'
+# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/ -d '{"time_duration":"24"}'
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 
@@ -43,12 +24,12 @@ db_function_write = db_connection_WRITE()
 
 app = Flask(__name__)
 
-@app.route('/', methods=['POST', 'GET'])
-def test_fun():
+@app.route('/cron_scan/', methods=['GET'])
+def cron_scan():
 
-    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+    # results = db_connection_WRITE.select_pii(request.json["time_duration"])
 
-    return raw_contents
+    return "hello world"
 
 # This function sends the uploaded resume to our scanning and masking functions 
 # which will flag out PIIs and mask them inside the resume
@@ -73,19 +54,27 @@ def process_resume():
         "individual_id": individual_id,
         "file_name": filename,
         "file_extension": file_extension,
-        "file_size": 3,
+        "file_size": 3, #how to get file size?
         "document_category": "Secret",
         "is_default": 1,
         "file_path": request.json["filepath"],
         "created_by": individual_id,
         "created_on": dt.datetime.now(),
         "modified_by": individual_id,
-        "modified_on": 3,
-        "parsed_content": PIIs,
+        "modified_on": dt.datetime.now(),
         "parsed_content_v2": parsed_contents,
         }
 
-    db_functions.insert(task) # call upsert function to insert/update parsed resume into database
+    task_pii = {
+        "individual_id": individual_id,
+        "created_by": individual_id,
+        "created_on": dt.datetime.now(),
+        "name": PIIs['name']
+    }
+
+    # db_function_write.insert_main(task) # call upsert function to insert/update parsed resume into database
+    
+    # db_function_write.insert_pii(task_pii) # call upsert function to insert/update PIIs into database
 
     return jsonify(task), 201
 

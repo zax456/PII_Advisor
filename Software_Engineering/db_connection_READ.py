@@ -3,11 +3,11 @@ from pprint import pprint
 import configparser
 import datetime as dt
 
-class db_connection_READ():
+class db_connection_READ:
 
-    def __init__(self): 
+    def __init__(self, config_path): 
         self._config = configparser.ConfigParser()
-        self._config.read('Software_Engineering/database_READ_config.ini')
+        self._config.read(config_path)
 
         # setting up the connection to database
         self._conn = pymysql.connect(host = self._config.get('production_db', 'host'), 

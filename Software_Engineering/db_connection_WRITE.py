@@ -3,11 +3,11 @@ from pprint import pprint
 import configparser
 import datetime as dt
 
-class db_connection_WRITE():
+class db_connection_WRITE:
 
-    def __init__(self): 
+    def __init__(self, config_path): 
         self._config = configparser.ConfigParser()
-        self._config.read('Software_Engineering/database_WRITE_config.ini')
+        self._config.read(config_path)
 
         # setting up the connection to database
         self._conn = pymysql.connect(host = self._config.get('production_separate_db', 'host'), 
@@ -84,7 +84,7 @@ class db_connection_WRITE():
         '''
         returns all records in PII table
         '''
-        pass
+        return []
 
     # TODO
     # function: insert PIIs of uploaded resumes
