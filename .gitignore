@@ -1,9 +1,9 @@
 # Database config files
 *config.txt
-*.ini
+
 
 # __pycache__ folders
-*__pycache__
+*.pyc
 
 
 #----------------------------------------------------------------------------

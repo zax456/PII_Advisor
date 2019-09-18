@@ -3,42 +3,42 @@ from pprint import pprint
 import configparser
 import datetime as dt
 
-class db_connection():
+class db_connection_WRITE():
 
     def __init__(self): 
         self._config = configparser.ConfigParser()
-        self._config.read('Software_Engineering/database_config.ini')
+        self._config.read('Software_Engineering/database_WRITE_config.ini')
 
         # setting up the connection to database
-        self._conn = pymysql.connect(host = self._config.get('rds_database', 'host'), 
-                                        user = self._config.get('rds_database', 'user'), 
-                                        port = self._config.getint('rds_database', 'port'), 
-                                        passwd = self._config.get('rds_database', 'password'), 
-                                        db = self._config.get('rds_database', 'dbname')
-                                        )
+        self._conn = pymysql.connect(host = self._config.get('production_separate_db', 'host'), 
+                                    user = self._config.get('production_separate_db', 'user'), 
+                                    port = self._config.getint('production_separate_db', 'port'), 
+                                    passwd = self._config.get('production_separate_db', 'password'), 
+                                    db = self._config.get('production_separate_db', 'dbname')
+                                    )
 
         ## SQL statements
-        self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('rds_database', 'tablename'), 
-                                                                    self._config.getint('rds_database', 'time_interval'))
-        self.DELETEsql = self._config.get('sql_queries', 'truncate') %self._config.get('rds_database', 'tablename')
+        self.SELECTsql = self._config.get('production_separate_db', 'select')
 
-        self.INSERTsql = self._config.get('sql_queries', 'insert')
+        self.INSERTsql = self._config.get('production_separate_db', 'insert')
 
-        self.UPDATEsql = self._config.get('sql_queries', 'update')
+        # self.UPDATEsql = self._config.get('sql_queries', 'update')
+
+        # self.DELETEsql = self._config.get('sql_queries', 'truncate') %self._config.get('rds_database', 'tablename')
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
     # output: tuple of tuples of records
-    def _select(self):
+    def _select_main(self, hours):
         with self._conn:
             cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
-            cur.execute(self.SELECTsql)
+            cur.execute(self.SELECTsql %(self._config.get('production_separate_db', 'tablename'), hours))
             rows = cur.fetchall()
         return rows
 
-    # function - insert newly scanned resumes
+    # function: insert uploaded resumes
     # input: JSON object containing 1) string raw text, 2) dict flagged PIIs, 3) string parsed text, 4) user id
-    def insert(self, record):
+    def insert_main(self, record):
         with self._conn:
             cur = self._conn.cursor()
 
@@ -70,24 +70,49 @@ class db_connection():
 
     # TODO
     # function: update existing record column(s)
-    # input: JSON object - is_default, is_delete, modified_by, modified_on
-    def update(self, record):
+    # input: JSON object - 1) is_default, 2) is_delete, 3) modified_by, 4) modified_on
+    def update_main(self, record):
         '''
         Need more specifications from Joseph on this b4 i start coding
+        '''
+        pass
+
+    # TODO
+    # function: retrieve all PIIs of uploaded resumes
+    # input: Not sure yet...need to discuss with Tony/CY
+    def select_pii(self):
+        '''
+        returns all records in PII table
+        '''
+        pass
+
+    # TODO
+    # function: insert PIIs of uploaded resumes
+    # input: JSON object containing 1) job_id from main table, 2) individual_id (user), 
+    #                               3) name, 4) nric, 5) email, 6) phone_number, 7) physical_address
+    def insert_pii(self, record):
+        '''
+        Insert flagged PIIs for uploaded resume
         '''
         pass
 
     # DELETE all records and reset PK
     # input: string user id
     # output: nil
-    def _delete(self):
-        with self._conn:
-            cur = self._conn.cursor()
-            cur.execute(self.DELETEsql)
-        print("Table reset sucessfully!")
+    # def _delete(self):
+    #     with self._conn:
+    #         cur = self._conn.cursor()
+    #         cur.execute(self.DELETEsql)
+    #     print("Table reset sucessfully!")
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-# db = db_connection()
+# db = db_connection_WRITE()
+# for record in fake_data:
+#     db.insert(record)
+# db.delete()
+# pprint(db._select(24))
+
+
 # fake_data = [
 #     {
 #         "individual_id": "Ang Kian Hwee",
@@ -191,7 +216,3 @@ class db_connection():
 #         Computational Methods for BA Expected Date of Graduation: December 2019",
 #         } 
 #     ]
-# for record in fake_data:
-#     db.insert(record)
-# db.delete()
-# pprint(db.select_test())

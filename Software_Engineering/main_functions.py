@@ -3,10 +3,12 @@ import pymysql, sys
 import datetime as dt
 import re
 # import importlib.util
-from db_connection import db_connection
+from db_connection_READ import db_connection_READ
+from db_connection_WRITE import db_connection_WRITE
 import convert_to_text
 import process_string
-db_functions = db_connection()
+db_function_read = db_connection_READ()
+db_function_write = db_connection_WRITE()
 
 # docker run -v D:/AKH_Folder/Work/University/Year 4 Sem 1/BT3101 Business Analytics Capstone Project/pii/data_science/unit_tests:/usr/src/app first_docker
 
@@ -59,12 +61,12 @@ def process_resume():
 
     raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
 
-    # PIIs, parsed_contents = process_string.process_string(raw_contents)
+    PIIs, parsed_contents = process_string.process_string(raw_contents)
 
     full_filename = request.json["filepath"].lower().split('/')[-1]
     filename = full_filename.split('.')[0]
     file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
-    individual_id = "1"
+    individual_id = "ID_testingV2"
     # individual_id = get_user_id() # TO BE Implemented later
 
     task = {
@@ -79,8 +81,8 @@ def process_resume():
         "created_on": dt.datetime.now(),
         "modified_by": individual_id,
         "modified_on": 3,
-        "parsed_content": "Placeholder contents",
-        "parsed_content_v2": raw_contents,
+        "parsed_content": PIIs,
+        "parsed_content_v2": parsed_contents,
         }
 
     db_functions.insert(task) # call upsert function to insert/update parsed resume into database
