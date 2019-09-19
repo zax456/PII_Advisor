@@ -2,7 +2,7 @@ import unittest
 import phonenumbers
 import re
 from textblob import TextBlob
-
+import spacy
 #from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 #from pdfminer.converter import TextConverter
 #from pdfminer.layout import LAParams
@@ -25,9 +25,12 @@ def process_string(raw_text):
       Secondary (Indirect) Output:
       The raw resume string, Output from flagging(), Output from parsing() will be upsert into 3 different columns for the record with the same uuid in database. 
 	"""
-    PIIs = flagging(raw_text)
-    parse_text = parsing(raw_text, PIIs)
-    return PIIs, parse_text # for testing purposes only...remove this after confirming process_string works
+    try:
+        PIIs = flagging(raw_text)
+        parse_text = parsing(raw_text, PIIs)
+        return PIIs, parse_text
+    except:
+        print("process_string returned an error")
     # return ("Successfully processed and uploaded resume into database!")
 
 def flagging(raw_text):
@@ -37,25 +40,28 @@ def flagging(raw_text):
       Input: Output from convert_to_text()
 
       Output: returns an array of unique PIIs / returns a dictionary of lists of PIIs (there might be more than 1 value for 1 key, for exmaple giving home + personal phone number)
-	"""
-    nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
-    email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
-    phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(raw_text, "SG")] 
-    search_physical_address = re.search('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
-                                        '[\s]?' +
-                                        '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
-                                        '[\s]' +
-                                        '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
-                                        '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
-                                        , raw_text)
-    physical_address = [search_physical_address.group() if search_physical_address is not None else '']
-    name = process_name(raw_text).strip()
-    return {'nric':nric,
-            'email':email_address,
-            'phone':phone_number,
-            'address':physical_address,
-            'name':[name]
-            }
+    """
+    try:
+        nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
+        email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
+        phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(raw_text, "SG")] 
+        search_physical_address = re.search('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
+                                            '[\s]?' +
+                                            '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
+                                            '[\s]' +
+                                            '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
+                                            '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
+                                            , raw_text)
+        physical_address = search_physical_address.group() if search_physical_address is not None else ''
+        name = process_name(raw_text).strip() if type(raw_text) == 'str' else ''
+        return {'nric':nric,
+                'email':email_address,
+                'phone':phone_number,
+                'address':[physical_address] if physical_address else [],
+                'name':[name] if name else []
+                }
+    except:
+        print("flagging returned an error")
 
 def parsing(raw_text, dic):
     """
@@ -68,26 +74,30 @@ def parsing(raw_text, dic):
       Output: 
       Entire string from convert_to_text() <pii: nric> labels over sensitive information.
     """
-    processed_text = raw_text
-    # Removing hard PIIs by default: NRIC, email address, phone, physical address
-    processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii_email>', processed_text)
-    processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii_nric>', processed_text)
-    phone_number_raw = [match.raw_string for match in phonenumbers.PhoneNumberMatcher(processed_text, "SG")] 
-    for num in phone_number_raw:
-        processed_text=processed_text.replace(num, "<pii_phone>")
-    processed_text = re.sub('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
-                            '[\s]?' +
-                            '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
-                            '[\s]' +
-                            '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
-                            '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
-                            , '<pii_address>'   
-                            , processed_text)   
-    processed_text = re.sub(dic['name'][0], '<pii_name>', processed_text) 
-    processed_text = " ".join(processed_text.split())  
-    processed_text = processed_text.replace("#", '') # remove redundant characters
-    # if PIIs then remove 
-    return processed_text
+    try:
+        processed_text = raw_text
+        # Removing hard PIIs by default: NRIC, email address, phone, physical address
+        processed_text = re.sub("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", '<pii_email>', processed_text)
+        processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii_nric>', processed_text)
+        phone_number_raw = [match.raw_string for match in phonenumbers.PhoneNumberMatcher(processed_text, "SG")] 
+        for num in phone_number_raw:
+            processed_text=processed_text.replace(num, "<pii_phone>")
+        processed_text = re.sub('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
+                                '[\s]?' +
+                                '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
+                                '[\s]' +
+                                '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
+                                '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
+                                , '<pii_address>'
+                                , processed_text)
+        if dic['name'] != []:
+            processed_text = re.sub(dic['name'][0], '<pii_name>', processed_text)
+        processed_text = " ".join(processed_text.split())
+        processed_text = processed_text.replace("#", '') # remove redundant characters
+        # if PIIs then remove 
+        return processed_text
+    except:
+        print("parsing returned an error")
 
 def process_name(raw_text):
     """
@@ -99,16 +109,12 @@ def process_name(raw_text):
       Output: 
       Name of string type
       """  
-    # nlp = spacy.load("../model_building/model")
-    # doc = nlp(raw_text)
-    # for ent in doc.ents:
-    #     if ent.label_ == "NAME":
-    #         return ent.text
-    sentences = raw_text.split('\n')
-    for i in sentences:
-        blob = TextBlob(i)
-        if len(blob.tags) >=2 and all(tag in ("NNP","NNS", "NN", "JJ") for words,tag in blob.tags):
-            return i
+    nlp = spacy.load("../model_building/model")
+    doc = nlp(raw_text)
+    for ent in doc.ents:
+        if ent.label_ == "NAME":
+            return ent.text
+
 
 ###################################################################
 
@@ -131,21 +137,20 @@ class Test(unittest.TestCase):
 #        expected = ["Ang Kian Hwee", "25", "S1234567A"]
 #        self.assertEqual(actual, expected)
         dic, parsed_string = process_string(raw_text)
-        
         # match each key to each value
-        test_dic = {'name': ['Ang Kian Hwee'], 'address': ['Blk123 Choa Chu Kang Loop #02-34 S680341'], 
+        test_dic = {'name': ['Ang Kian Hwee'], 'address': ['Blk123 Choa Chu Kang Loop #02-34 S680341'],
                     'email': ['angkianhwee@u.nus.edu'], 'nric':[], 'phone':[]}
         dic_check = True
         pii_keys = ['name', 'address', 'email', 'nric', 'phone']
         for key in pii_keys:
             if dic[key] != test_dic[key]:
                 dic_check = False
-                break        
+                break               
         test_string = "<pii_name> <pii_address> Email: <pii_email> EDUCATION National University of Singapore (NUS)"
         if parsed_string == test_string:
             parsed_string_check = True
         else:
-            parsed_string_check = False          
+            parsed_string_check = False
         self.assertTrue(parsed_string_check and dic_check)
         
         
@@ -158,17 +163,15 @@ class Test(unittest.TestCase):
                     cash handling background."
 
         dic, parsed_string = process_string(raw_text)
-        
         # match each key to each value
-        test_dic = {'name': ['ALICE TAN MING NI'], 'nric': ['S4598004D'], 'address': ['16 JIAK CHUAN RD, SINGAPORE 089267'], 
+        test_dic = {'name': ['ALICE TAN MING NI'], 'nric': ['S4598004D'], 'address': ['16 JIAK CHUAN RD, SINGAPORE 089267'],
                     'email': ['FUNNYGIRL111@AOL.COM'], 'phone': ['+6597224728']}
         dic_check = True
-        pii_keys = ['name', 'address', 'email', 'nric', 'phone']       
+        pii_keys = ['name', 'address', 'email', 'nric', 'phone']
         for key in pii_keys:
             if dic[key] != test_dic[key]:
                 dic_check = False
                 break
-            
         test_string = "<pii_name> <pii_nric> <pii_address> \
         <pii_phone> <pii_email> HTTPS://LINKEDIN.COM/ALICEELIOT Summary\
         Experienced Server bringing enthusiasm, dedication and an exceptional work ethic.\
@@ -182,10 +185,8 @@ class Test(unittest.TestCase):
         if parsed_string == test_string:
             parsed_string_check = True
         else:
-            parsed_string_check = False   
+            parsed_string_check = False
         self.assertTrue(parsed_string_check and dic_check)
    
 # run this line
 unittest.main(verbosity=2)
-
-        
