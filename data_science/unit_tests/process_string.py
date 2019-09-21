@@ -53,7 +53,7 @@ def flagging(raw_text):
                                             '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
                                             , raw_text)
         physical_address = search_physical_address.group() if search_physical_address is not None else ''
-        name = process_name(raw_text).strip() if type(raw_text) == 'str' else ''
+        name = process_name(raw_text).strip() if type(raw_text) == str else ''
         return {'nric':nric,
                 'email':email_address,
                 'phone':phone_number,
@@ -108,13 +108,15 @@ def process_name(raw_text):
 
       Output: 
       Name of string type
-      """  
-    nlp = spacy.load("../model_building/model")
-    doc = nlp(raw_text)
-    for ent in doc.ents:
-        if ent.label_ == "NAME":
-            return ent.text
-
+      """
+    try:
+        nlp = spacy.load("../model_building/model")
+        doc = nlp(raw_text)
+        for ent in doc.ents:
+            if ent.label_ == "NAME":
+                return ent.text
+    except:
+        print("process_name returned an error")                
 
 ###################################################################
 
@@ -189,4 +191,5 @@ class Test(unittest.TestCase):
         self.assertTrue(parsed_string_check and dic_check)
    
 # run this line
+
 unittest.main(verbosity=2)
