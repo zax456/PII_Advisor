@@ -27,9 +27,8 @@ class db_connection_WRITE:
 
         self.INSERTsql_pii = self._config.get('production_separate_db', 'insert_pii')
 
-        # self.UPDATEsql = self._config.get('sql_queries', 'update')
-
-        # self.DELETEsql = self._config.get('sql_queries', 'truncate') %self._config.get('rds_database', 'tablename')
+        self.UPDATEsql = self._config.get('production_separate_db', 'update_main')
+        self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
