@@ -99,11 +99,16 @@ def process_name(raw_text):
       Output: 
       Name of string type
       """  
+    # nlp = spacy.load("../model_building/model")
+    # doc = nlp(raw_text)
+    # for ent in doc.ents:
+    #     if ent.label_ == "NAME":
+    #         return ent.text
     sentences = raw_text.split('\n')
     for i in sentences:
         blob = TextBlob(i)
         if len(blob.tags) >=2 and all(tag in ("NNP","NNS", "NN", "JJ") for words,tag in blob.tags):
-            return i    
+            return i
 
 ###################################################################
 
@@ -173,7 +178,7 @@ class Test(unittest.TestCase):
         
         # replace multiple spaces between text with single space
         test_string = re.sub(' +', ' ', test_string)
-        parsed_string = re.sub(' +', ' ', parsed_string)        
+        parsed_string = re.sub(' +', ' ', parsed_string)
         if parsed_string == test_string:
             parsed_string_check = True
         else:

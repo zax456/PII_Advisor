@@ -1,5 +1,9 @@
 import unittest
 import re
+import os
+import docx2txt
+from odf import text, teletype
+from odf.opendocument import load
 
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
@@ -7,8 +11,31 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import StringIO
 
+#remaining to test: doc, txt
 
-def convert_to_text(filepath):
+def process_string(filepath):
+	if filepath[-3:]=='pdf':
+		return getPDFcontent(filepath)
+	if filepath[-3:]=='odt':
+		return getODTContent(filepath)
+	if filepath[-3:]=='doc':
+		return getDOCcontent(filepath)
+	if filepath[-3:]=='txt':
+		return getTXTcontent(filepath)
+	if filepath[-4:]=='docx':
+		return getDocxContent(filepath)
+
+
+def getDOCcontent(filepath):	#couldnt find a way for Windows so i converted the file, but for mac there is antiword/textract		
+	docx_file = '{0}{1}'.format(filepath, 'x')
+	content = getDocxContent(docx_file)
+	return content
+
+def getTXTcontent(filepath):
+	content = open(filepath, "r")
+	return content
+
+def getPDFcontent(filepath):
     """
     Function:
 	Takes in a file and converts contents to python strings. 
@@ -41,6 +68,18 @@ def convert_to_text(filepath):
     
     return text
 
+def getDocxContent(filename):
+	DocxText = docx2txt.process(filename)
+	return DocxText
+
+def getODTContent(filename):
+    list=[]
+    textdoc = load(filename)
+    allparas = textdoc.getElementsByType(text.P)
+    for i in range(len(allparas)):
+        list.append(teletype.extractText(allparas[i]))
+    return ' '.join(list)
+
 def convert_to_text_dir(dir, directory = True):
     """
     Takes in a directory and outputs all the strings found while processing the contents of each resume.
@@ -64,7 +103,7 @@ def contains_word(s, w):
 class Test(unittest.TestCase):
 
     def test_1(self):
-        actual = convert_to_text(directory + '/sample_resumes/' + "kh_resume.pdf")
+        actual = process_string(directory + '/sample_resumes/' + "kh_resume.pdf")
 #        this is 1 test case that will pass the test case
 #        actual = "Ang Kian Hwee Blk123 Choa Chu Kang Loop #02-34 S680341 Email: angkianhwee@u.nus.edu EDUCATION \
 #        National University of Singapore (NUS) Bachelor of Science (Business Analytics), Honours \
@@ -74,18 +113,76 @@ class Test(unittest.TestCase):
 #        Computational Methods for BA Expected Date of Graduation: December 2019"
         actual = actual.lower()
         found = True
+        #print(actual)
         phrases = ['ang kian hwee', 'blk123 choa chu kang loop #02-34 s680341', 'email: angkianhwee@u.nus.edu', 'education',
            'national university of singapore (nus)', 'bachelor of science (business analytics), honours', 'aug 2016 – present',
            '25 years old', 'nric: s1234567a', 'relevant coursework: data management and chinese,', 'business and technical communication,',
-           'application systems development for business analytics,', 'regression analysis,', 'data structure & algorithms (python, java),',
+           'application systems development for business analytics,', 'regression analysis,', 'data structure ', 'algorithms (python, java),',
            'mining web data for business insights, operations research,', 'capstone project,', 
            'computational methods for ba', 'expected date of graduation: december 2019']
         for p in phrases:
             print(p)
-            found = contains_word(actual, p) and found
+            found = (p in actual) and found
             
             if not found:
                 break
         self.assertTrue(found)
-        
-# unittest.main(verbosity=2)
+
+    def test_2(self):
+        actual = process_string(directory + '/sample_resumes/' + "kh_resume_2pages.docx")
+        actual = actual.lower()
+        found = True
+        #print(actual)
+        phrases = ['ang kian hwee', 'blk123 choa chu kang loop #02-34 s680341', 'email: angkianhwee@u.nus.edu', 'education',
+           'national university of singapore (nus)', 'bachelor of science (business analytics), honours', 'aug 2016 – present',
+           '25 years old', 'nric: s1234567a', 'relevant coursework: data management and chinese,', 'business and technical communication,',
+           'application systems development for business analytics,', 'regression analysis,', 'data structure ', 'algorithms (python, java),',
+           'mining web data for business insights, operations research,', 'capstone project,', 
+           'computational methods for ba', 'expected date of graduation: december 2019']
+        for p in phrases:
+            print(p)
+            found = (p in actual) and found
+            
+            if not found:
+                break
+        self.assertTrue(found)
+
+    def test_3(self):
+        actual = process_string(directory + '/sample_resumes/' + "kh_resume_2pages.odt")
+        actual = actual.lower()
+        found = True
+        #print(actual)
+        phrases = ['ang kian hwee', 'blk123 choa chu kang loop #02-34 s680341', 'email: angkianhwee@u.nus.edu', 'education',
+           'national university of singapore (nus)', 'bachelor of science (business analytics), honours', 'aug 2016 – present',
+           '25 years old', 'nric: s1234567a', 'relevant coursework: data management and chinese,', 'business and technical communication,',
+           'application systems development for business analytics,', 'regression analysis,', 'data structure ', 'algorithms (python, java),',
+           'mining web data for business insights, operations research,', 'capstone project,', 
+           'computational methods for ba', 'expected date of graduation: december 2019']
+        for p in phrases:
+            print(p)
+            found = (p in actual) and found
+            
+            if not found:
+                break
+        self.assertTrue(found)
+
+    def test_4(self):
+        actual = getDOCcontent(directory + '/sample_resumes/' + "kh_resume.doc")
+        actual = actual.lower()
+        found = True
+        #print(actual)
+        phrases = ['ang kian hwee', 'blk123 choa chu kang loop #02-34 s680341', 'email: angkianhwee@u.nus.edu', 'education',
+           'national university of singapore (nus)', 'bachelor of science (business analytics), honours', 'aug 2016 – present',
+           '25 years old', 'nric: s1234567a', 'relevant coursework: data management and chinese,', 'business and technical communication,',
+           'application systems development for business analytics,', 'regression analysis,', 'data structure ', 'algorithms (python, java),',
+           'mining web data for business insights, operations research,', 'capstone project,', 
+           'computational methods for ba', 'expected date of graduation: december 2019']
+        for p in phrases:
+            print(p)
+            found = (p in actual) and found
+            
+            if not found:
+                break
+        self.assertTrue(found)
+
+unittest.main(verbosity=2)
