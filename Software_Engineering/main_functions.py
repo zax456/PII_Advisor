@@ -72,7 +72,7 @@ def process_resume():
 def update_resume():
 
     is_default = db_connection_WRITE.select_pii(request.json["is_default"])
-    is_delete = db_connection_WRITE.select_pii(request.json["no_delete"])
+    is_delete = db_connection_WRITE.select_pii(request.json["is_delete"])
     individual_id = "ID_testingV2"
     # individual_id = get_user_id() # TO BE Implemented later
 
@@ -93,14 +93,3 @@ def not_found(error):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-# function to flag out PIIs and mask contents
-# input: raw text from document
-# output: JSON object with PIIs and Parsed contents
-# def process_text(contents):
-#     result = {
-#         'PIIs': "flagged PIIs",
-#         'Parsed contents': "parsed text"
-#     }
-#     return result
