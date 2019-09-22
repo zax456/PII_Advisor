@@ -2,13 +2,13 @@
 # How to run: pip install -r requirements.txt
 Flask==0.12.2
 flask_restful==0.3.7
-pandas == 0.24.2
-numpy == 1.16.5
+# pandas == 0.24.2
+# numpy == 1.16.5
 pymysql == 0.9.3
 configparser == 4.0.2
 requests==2.20.0
 jsonschema==2.6.0
-# simplejson==3.16.0
+simplejson==3.16.0
 emoji==0.5.1
 
 spacy == 2.1.8
