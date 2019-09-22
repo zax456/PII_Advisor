@@ -10,8 +10,8 @@ db_function_read = db_connection_READ("database_READ_config.ini")
 db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 # TEST COMMANDS
-# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
-# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/ -d '{"time_duration":"24"}'
+# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
+# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":"24"}'
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 

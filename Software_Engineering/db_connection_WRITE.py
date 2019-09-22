@@ -28,9 +28,9 @@ class db_connection_WRITE:
         self.UPDATEsql_main = self._config.get('production_separate_db', 'update_main')
         self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
-        self.SELECTsql_pii = self._config.get('production_separate_db', 'select_pii')
+        self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
 
-        self.INSERTsql_pii = self._config.get('production_separate_db', 'insert_pii')
+        self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
         
 
@@ -65,7 +65,7 @@ class db_connection_WRITE:
             created_on = record['created_on']
             modified_by = record['modified_by']
             modified_on = record['modified_on']
-            parsed_content = record['parsed_content']
+            parsed_content = record.get('parsed_content', "Nothing here")
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
 
@@ -172,11 +172,6 @@ class db_connection_WRITE:
 # db = db_connection_WRITE("Software_Engineering/database_WRITE_config.ini")
 # db._update_main({"individual_id":"Testing_ID", "file_name":"Testing_PDF2", "is_delete": 1})
 
-# for record in fake_data:
-#     db.insert(record)
-# db.delete()
-pprint(db.select_main())
-pprint(db.select_pii())
 
 # pii_fake_data = [
 #     {
