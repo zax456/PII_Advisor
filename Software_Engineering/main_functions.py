@@ -64,7 +64,7 @@ def process_resume():
         "parsed_content_v2": parsed_contents,
         }
 
-    db_function_write._insert_main(task) # call upsert function to insert/update parsed resume into database
+    db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
 
     return jsonify(task), 201
 
