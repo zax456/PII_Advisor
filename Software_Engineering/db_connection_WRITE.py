@@ -128,7 +128,7 @@ db = db_connection_WRITE(config_path='./database_WRITE_config.ini')
 # for record in fake_data:
 #     db.insert(record)
 # db.delete()
-pprint(db.select_main())
+pprint(db._select_main(1000))
 pprint(db.select_pii())
 
 # pii_fake_data = [
