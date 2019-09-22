@@ -69,6 +69,24 @@ def process_resume():
 
     return jsonify(task), 201
 
+@app.route('/update/', methods=['POST'])
+def update_resume():
+
+    is_default = db_connection_WRITE.select_pii(request.json["is_default"])
+    is_delete = db_connection_WRITE.select_pii(request.json["no_delete"])
+    individual_id = "ID_testingV2"
+    # individual_id = get_user_id() # TO BE Implemented later
+
+    task = {
+        "individual_id": individual_id,
+        "is_default": is_default,
+        "is_delete": is_delete
+    }
+
+    db_function_write._update_main(task)
+
+    return "Update operation success!"
+
 # Return error 404 in JSON format
 @app.errorhandler(404)
 def not_found(error):
