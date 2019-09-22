@@ -11,7 +11,7 @@ jsonschema==2.6.0
 simplejson==3.16.0
 emoji==0.5.1
 
-# spacy == 2.1.8
+spacy == 2.1.8
 pdfminer.six == 20181108
 nltk == 3.4.5
 phonenumbers == 8.10.18
