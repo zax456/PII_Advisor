@@ -43,7 +43,7 @@ class db_connection_WRITE:
 
     # function: insert uploaded resumes
     # input: JSON object containing 1) string raw text, 2) dict flagged PIIs, 3) string parsed text, 4) user id
-    def insert_main(self, record):
+    def _insert_main(self, record):
         with self._conn:
             cur = self._conn.cursor()
 
@@ -124,12 +124,13 @@ class db_connection_WRITE:
     #     print("Table reset sucessfully!")
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-db = db_connection_WRITE(config_path='./database_WRITE_config.ini')
+# db = db_connection_WRITE(config_path='./database_WRITE_config.ini')
 # for record in fake_data:
 #     db.insert(record)
 # db.delete()
-pprint(db._select_main(1000))
-pprint(db.select_pii())
+
+# pprint(db._select_main(24))
+# pprint(db.select_pii())
 
 # pii_fake_data = [
 #     {
