@@ -58,9 +58,9 @@ class db_connection_WRITE:
             is_default = record['is_default']
             file_path = record['file_path']
             created_by = record['created_by']
-            created_on = record['created_on']
+            # created_on = record['created_on']
             modified_by = record['modified_by']
-            modified_on = record['modified_on']
+            # modified_on = record['modified_on']
             parsed_content = record.get('parsed_content', "Nothing here")
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
@@ -68,7 +68,7 @@ class db_connection_WRITE:
             cur.execute(self.INSERTsql_main %(self._config.get('production_separate_db', 'tablename'), 
                                             individual_id, file_name, file_extension, file_size, 
                                             document_category, is_default, file_path, 
-                                            created_by, created_on, modified_by, modified_on,
+                                            created_by, modified_by,
                                             parsed_content, parsed_content_v2))
             print("inserted sucessfully!")
             self._conn.commit()
