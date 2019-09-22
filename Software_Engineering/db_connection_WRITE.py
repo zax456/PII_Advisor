@@ -21,9 +21,13 @@ class db_connection_WRITE:
                                     )
 
         ## SQL statements
-        self.SELECTsql = self._config.get('production_separate_db', 'select_main')
+        self.SELECTsql_main = self._config.get('production_separate_db', 'select_main')
 
-        self.INSERTsql = self._config.get('production_separate_db', 'insert_main')
+        self.INSERTsql_main = self._config.get('production_separate_db', 'insert_main')
+
+        self.SELECTsql_pii = self._config.get('production_separate_db', 'select_pii')
+
+        self.INSERTsql_pii = self._config.get('production_separate_db', 'insert_pii')
 
         self.UPDATEsql = self._config.get('production_separate_db', 'update_main')
         self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
@@ -34,7 +38,7 @@ class db_connection_WRITE:
     def _select_main(self, hours):
         with self._conn:
             cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
-            cur.execute(self.SELECTsql %(self._config.get('production_separate_db', 'tablename'), hours))
+            cur.execute(self.SELECTsql_main %(self._config.get('production_separate_db', 'tablename'), hours))
             rows = cur.fetchall()
         return rows
 
@@ -137,7 +141,11 @@ class db_connection_WRITE:
         '''
         returns all records in PII table
         '''
-        return []
+        with self._conn:
+            cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
+            cur.execute(self.SELECTsql_pii %('pii'))
+            rows = cur.fetchall()
+        return rows
 
     # TODO
     # function: insert PIIs of uploaded resumes
@@ -147,7 +155,16 @@ class db_connection_WRITE:
         '''
         Insert flagged PIIs for uploaded resume
         '''
-        pass
+        with self._conn:
+            cur = self._conn.cursor()
+
+            js_documents_id = record['js_documents_id']
+            individual_id = record['individual_id']
+            pii_json = json.dumps(record['pii_json'])
+
+            cur.execute(self.INSERTsql_pii, (js_documents_id, individual_id, pii_json))
+            print("inserted sucessfully into pii talble!")
+            self._conn.commit()
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
 # db = db_connection_WRITE("Software_Engineering/database_WRITE_config.ini")
@@ -156,8 +173,31 @@ class db_connection_WRITE:
 # for record in fake_data:
 #     db.insert(record)
 # db.delete()
-# pprint(db._select(24))
+pprint(db.select_main())
+pprint(db.select_pii())
 
+# pii_fake_data = [
+#     {
+#         "js_documents_id": "doc1",
+#         "individual_id": "indv1",
+#         "pii_json": {
+#             "name": "cylee",
+#             "nric": "S1234567Z"
+#         }
+#     },
+#     {
+#         "js_documents_id": "doc2",
+#         "individual_id": "indv2",
+#         "pii_json": {
+#             "name": "dylansmith",
+#             "nric": "S7654321A",
+#             "phone": "91115551"
+#         }
+#     },
+# ]
+
+# for record in pii_fake_data:
+#     db.insert_pii(record)
 
 # fake_data = [
 #     {
