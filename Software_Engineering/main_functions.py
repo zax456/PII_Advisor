@@ -11,6 +11,7 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 # TEST COMMANDS
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
+# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/update/ -d '{"individual_id": "ID_testingV2", "file_name": "kh_resume_pdf1", "is_default": 0}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":"24"}'
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
@@ -71,20 +72,23 @@ def process_resume():
 @app.route('/update/', methods=['POST'])
 def update_resume():
 
-    is_default = db_connection_WRITE.select_pii(request.json["is_default"])
-    is_delete = db_connection_WRITE.select_pii(request.json["is_delete"])
-    individual_id = "ID_testingV2"
+    data = request.get_json()
+    is_default = data.get('is_default', 0)
+    is_delete = data.get('is_delete', 0)
+    filename = data.get('file_name', 0)
+    individual_id = data.get('individual_id', "No Name")
     # individual_id = get_user_id() # TO BE Implemented later
 
     task = {
         "individual_id": individual_id,
         "is_default": is_default,
-        "is_delete": is_delete
+        "is_delete": is_delete,
+        "file_name": filename
     }
 
-    db_function_write._update_main(task)
+    result = db_function_write._update_main(task)
 
-    return "Update operation success!"
+    return result, 201
 
 # Return error 404 in JSON format
 @app.errorhandler(404)

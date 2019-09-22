@@ -22,14 +22,11 @@ class db_connection_WRITE:
 
         ## SQL statements
         self.SELECTsql_main = self._config.get('production_separate_db', 'select_main')
-
         self.INSERTsql_main = self._config.get('production_separate_db', 'insert_main')
-
         self.UPDATEsql_main = self._config.get('production_separate_db', 'update_main')
         self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
         self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
-
         self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
         
@@ -62,9 +59,7 @@ class db_connection_WRITE:
             is_default = record['is_default']
             file_path = record['file_path']
             created_by = record['created_by']
-            created_on = record['created_on']
             modified_by = record['modified_by']
-            modified_on = record['modified_on']
             parsed_content = record.get('parsed_content', "Nothing here")
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
@@ -72,7 +67,7 @@ class db_connection_WRITE:
             cur.execute(self.INSERTsql_main %(self._config.get('production_separate_db', 'tablename'), 
                                             individual_id, file_name, file_extension, file_size, 
                                             document_category, is_default, file_path, 
-                                            created_by, created_on, modified_by, modified_on,
+                                            created_by, modified_by,
                                             parsed_content, parsed_content_v2))
             print("inserted sucessfully!")
             self._conn.commit()
@@ -104,7 +99,6 @@ class db_connection_WRITE:
         cur = self._conn.cursor()
 
         individual_id = record['individual_id']
-        file_name = record['file_name'] # used to identify the record that user is specifying in place of ID
         selected_resume = self._get_resume(record)
         ID = selected_resume['id'].values[0]
         is_default = record.get('is_default', 0)
@@ -125,6 +119,10 @@ class db_connection_WRITE:
 
         # Change default resume to selected resume
         elif (is_default == 1):
+            # check if selected resume is deleted
+            if (selected_resume['is_deleted'].values[0] == 1): 
+                return "\nError! You cannot make a deleted resume as your default resume!"
+
             # update current default resume's is_default = 0
             cur.execute("UPDATE %s SET is_default=0 WHERE individual_id='%s' AND is_default=1" 
                         %(self._config.get('production_separate_db', 'tablename'), individual_id))
@@ -134,7 +132,7 @@ class db_connection_WRITE:
                         %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
 
         self._conn.commit()
-        print("Update sucessfully!")
+        return "\nUpdate sucessfully!"
 
     # TODO
     # function: retrieve all PIIs of uploaded resumes
