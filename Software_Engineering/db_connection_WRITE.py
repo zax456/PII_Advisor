@@ -23,12 +23,12 @@ class db_connection_WRITE:
 
         self.INSERTsql_main = self._config.get('production_separate_db', 'insert_main')
 
+        self.UPDATEsql_main = self._config.get('production_separate_db', 'update_main')
+        self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
+
         self.SELECTsql_pii = self._config.get('production_separate_db', 'select_pii')
 
         self.INSERTsql_pii = self._config.get('production_separate_db', 'insert_pii')
-
-        self.UPDATEsql = self._config.get('production_separate_db', 'update_main')
-        self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
@@ -116,7 +116,7 @@ class db_connection_WRITE:
                             %(self._config.get('production_separate_db', 'tablename'), individual_id))
 
             # delete and un-default selected resume
-            cur.execute(self.UPDATEsql 
+            cur.execute(self.UPDATEsql_main 
                         %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
 
         # Change default resume to selected resume
@@ -126,7 +126,7 @@ class db_connection_WRITE:
                         %(self._config.get('production_separate_db', 'tablename'), individual_id))
             
             # update new default to the selected resume
-            cur.execute(self.UPDATEsql 
+            cur.execute(self.UPDATEsql_main 
                         %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
 
         self._conn.commit()
