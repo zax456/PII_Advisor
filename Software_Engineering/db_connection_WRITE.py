@@ -62,7 +62,7 @@ class db_connection_WRITE:
             created_on = record['created_on']
             modified_by = record['modified_by']
             modified_on = record['modified_on']
-            parsed_content = record['parsed_content']
+            parsed_content = record.get('parsed_content', 0)
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
 
