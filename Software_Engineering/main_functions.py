@@ -40,7 +40,7 @@ def cron_scan():
 @app.route('/upload/', methods=['POST', 'GET'])
 def process_resume():
     
-    # raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
 
     # PIIs, parsed_contents = process_string.process_string(raw_contents)
 
