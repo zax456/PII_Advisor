@@ -39,7 +39,7 @@ def cron_scan():
 # output: flagged PIIs, filtered contents, operation type, job id in JSON format
 @app.route('/upload/', methods=['POST', 'GET'])
 def process_resume():
-
+    
     raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
 
     PIIs, parsed_contents = process_string.process_string(raw_contents)
