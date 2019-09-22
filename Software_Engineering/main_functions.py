@@ -67,7 +67,7 @@ def process_resume():
 
     # db_function_write._insert_main(task) # call upsert function to insert/update parsed resume into database
 
-    return jsonify(request.json["filepath"]), 201
+    return "hello WORLD!"
 
 # Return error 404 in JSON format
 @app.errorhandler(404)
