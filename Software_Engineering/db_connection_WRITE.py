@@ -66,7 +66,7 @@ class db_connection_WRITE:
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
 
-            cur.execute(self.INSERTsql, (individual_id, file_name, file_extension, file_size, 
+            cur.execute(self.INSERTsql_main, (individual_id, file_name, file_extension, file_size, 
                                         document_category, is_default, file_path, 
                                         created_by, created_on, modified_by, modified_on,
                                         parsed_content, parsed_content_v2))
