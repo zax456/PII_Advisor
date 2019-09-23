@@ -16,3 +16,5 @@ pdfminer.six == 20181108
 nltk == 3.4.5
 phonenumbers == 8.10.18
 textblob == 0.15.3
+docx2txt == 0.8
+odfpy == 1.4.0

@@ -1,0 +1,11 @@
+Training Data Set 
+Training data is 700 resumes, taken from Indeed.com. These are focused primarily in the technology industry.
+These have been annotated to train for the following entities: 
+Name, Skills, College,Degree, Graduation Year, Years of Experience, Companies worked at, Designation, Location, Email Address, Address, Can Relocate to, Rewards and Achievements, Certifications, Links, University, projects, state
+
+Limitation of Training Data Sets
+1.Training data set is not trained on a variety of (i) Names, (ii) Formats
+2.Dataset is relatively small for training a resume parser.
+
+Advantages of SpaCy:
+1. It’s very fast. It is written in Cython (Cython is a superset of Python that enhances the performance of Python to C language level).
