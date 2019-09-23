@@ -2,6 +2,8 @@ import pymysql
 from pprint import pprint
 import configparser
 import datetime as dt
+import numpy as np
+import pandas as pd
 import json
 
 class db_connection_WRITE:
@@ -20,16 +22,14 @@ class db_connection_WRITE:
 
         ## SQL statements
         self.SELECTsql_main = self._config.get('production_separate_db', 'select_main')
-
         self.INSERTsql_main = self._config.get('production_separate_db', 'insert_main')
+        self.UPDATEsql_main = self._config.get('production_separate_db', 'update_main')
+        self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
-        self.SELECTsql_pii = self._config.get('production_separate_db', 'select_pii')
+        self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
+        self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
-        self.INSERTsql_pii = self._config.get('production_separate_db', 'insert_pii')
-
-        # self.UPDATEsql = self._config.get('sql_queries', 'update')
-
-        # self.DELETEsql = self._config.get('sql_queries', 'truncate') %self._config.get('rds_database', 'tablename')
+        
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
@@ -43,15 +43,15 @@ class db_connection_WRITE:
 
     # function: insert uploaded resumes
     # input: JSON object containing 1) string raw text, 2) dict flagged PIIs, 3) string parsed text, 4) user id
-    def insert_main(self, record):
+    def _insert_main(self, record):
         with self._conn:
-            cur = self._conn.cursor()
-
             '''
             pick out the available contents
             insert record with contents into the right columns
             `is_deleted` is left out for obvious reason here
             '''
+            cur = self._conn.cursor()
+            
             file_name = record['file_name']
             file_extension = record['file_extension']
             file_size = record['file_size']
@@ -59,28 +59,80 @@ class db_connection_WRITE:
             is_default = record['is_default']
             file_path = record['file_path']
             created_by = record['created_by']
-            created_on = record['created_on']
             modified_by = record['modified_by']
-            modified_on = record['modified_on']
-            parsed_content = record['parsed_content']
+            parsed_content = record.get('parsed_content', "Nothing here")
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
 
-            cur.execute(self.INSERTsql, (individual_id, file_name, file_extension, file_size, 
-                                        document_category, is_default, file_path, 
-                                        created_by, created_on, modified_by, modified_on,
-                                        parsed_content, parsed_content_v2))
+            cur.execute(self.INSERTsql_main %(self._config.get('production_separate_db', 'tablename'), 
+                                            individual_id, file_name, file_extension, file_size, 
+                                            document_category, is_default, file_path, 
+                                            created_by, modified_by,
+                                            parsed_content, parsed_content_v2))
             print("inserted sucessfully!")
             self._conn.commit()
 
-    # TODO
+    # helper function to retrieve a resume based on individual id and file name
+    # input: JSON/dict
+    # output: tuple containing 1 resume and its columns separated by ,
+    def _get_resume(self, record):
+        cur = self._conn.cursor()
+
+        individual_id = record['individual_id']
+        file_name = record['file_name']
+
+        cur.execute(self.SELECT_resume 
+                    %(self._config.get('production_separate_db', 'tablename'), individual_id, file_name))
+
+        cols = self._config.get('production_separate_db', 'columns').split(',')
+        resume = pd.DataFrame( [list(cur.fetchall()[0])], columns=cols)
+        return resume
+    
     # function: update existing record column(s)
     # input: JSON object - 1) is_default, 2) is_delete, 3) modified_by, 4) modified_on
-    def update_main(self, record):
+    def _update_main(self, record):
         '''
-        Need more specifications from Joseph on this b4 i start coding
+        Updates 'is_delete' when user deletes selected resume
+        Updates 'is_default' column of current and new default resumes when user changes default resume
+        Update 'modified_on' when any updates happens
         '''
-        pass
+        cur = self._conn.cursor()
+
+        individual_id = record['individual_id']
+        selected_resume = self._get_resume(record)
+        ID = selected_resume['id'].values[0]
+        is_default = record.get('is_default', 0)
+        is_delete = record.get('is_delete', 0)
+
+        ''' if selected resume is default and is to be deleted, change default resume to the previous resume '''
+        if (is_delete == 1):
+            # check if selected resume is the default resume
+            if selected_resume['is_default'].values[0] == 1:
+                # make default to be the previous resume
+                cur.execute("UPDATE %s SET is_default = 1 WHERE individual_id = '%s' AND is_default = 0 AND is_deleted <> 1 \
+                            ORDER BY created_on DESC LIMIT 1" 
+                            %(self._config.get('production_separate_db', 'tablename'), individual_id))
+
+            # delete and un-default selected resume
+            cur.execute(self.UPDATEsql_main 
+                        %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
+
+        # Change default resume to selected resume
+        elif (is_default == 1):
+            # check if selected resume is deleted
+            if (selected_resume['is_deleted'].values[0] == 1): 
+                return "\nError! You cannot make a deleted resume as your default resume!"
+
+            # update current default resume's is_default = 0
+            cur.execute("UPDATE %s SET is_default=0 WHERE individual_id='%s' AND is_default=1" 
+                        %(self._config.get('production_separate_db', 'tablename'), individual_id))
+            
+            # update new default to the selected resume
+            cur.execute(self.UPDATEsql_main 
+                        %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
+
+        self._conn.commit()
+        return "\nUpdate sucessfully!"
 
     # TODO
     # function: retrieve all PIIs of uploaded resumes
@@ -114,22 +166,10 @@ class db_connection_WRITE:
             print("inserted sucessfully into pii talble!")
             self._conn.commit()
 
-    # DELETE all records and reset PK
-    # input: string user id
-    # output: nil
-    # def _delete(self):
-    #     with self._conn:
-    #         cur = self._conn.cursor()
-    #         cur.execute(self.DELETEsql)
-    #     print("Table reset sucessfully!")
-
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-db = db_connection_WRITE(config_path='./database_WRITE_config.ini')
-# for record in fake_data:
-#     db.insert(record)
-# db.delete()
-pprint(db.select_main())
-pprint(db.select_pii())
+# db = db_connection_WRITE("Software_Engineering/database_WRITE_config.ini")
+# db._update_main({"individual_id":"Testing_ID", "file_name":"Testing_PDF2", "is_delete": 1})
+
 
 # pii_fake_data = [
 #     {
