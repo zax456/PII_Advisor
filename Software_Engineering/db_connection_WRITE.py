@@ -29,7 +29,7 @@ class db_connection_WRITE:
         self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
         self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
-        
+        self.INSERTsql_tmp = self._config.get('production_separate_db', 'insert_tmp')  
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
@@ -164,6 +164,23 @@ class db_connection_WRITE:
 
             cur.execute(self.INSERTsql_pii, (js_documents_id, individual_id, pii_json))
             print("inserted sucessfully into pii talble!")
+            self._conn.commit()
+
+    # function: insert logging statements into database
+    # input: ran during exceptions called during any of the functions in process_string or convert_to_text
+    def _insert_tmp(self, record):
+        # return "hello tonyytonggg"
+        with self._conn:
+            '''
+            '''
+            cur = self._conn.cursor()
+
+            file_path = record['file_path']
+            data = record['data']
+            
+            cur.execute(self.INSERTsql_tmp %(self._config.get('production_separate_db', 'tablename_2'), file_path, data))
+
+            print("inserted into tmp sucessfully!")
             self._conn.commit()
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
