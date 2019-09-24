@@ -65,9 +65,14 @@ def process_resume():
         "parsed_content_v2": parsed_contents,
         }
 
-    db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
+    tmp = {
+        "created_at": request.json["filepath"],
+        "data": "hello world"
+        }
 
-    return jsonify(task), 201
+    #db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
+    db_function_write._insert_tmp(tmp)
+    return jsonify(tmp), 201
 
 @app.route('/update/', methods=['POST'])
 def update_resume():
