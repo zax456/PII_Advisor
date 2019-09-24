@@ -175,10 +175,10 @@ class db_connection_WRITE:
             '''
             cur = self._conn.cursor()
 
-            created_at = record['created_at']
+            file_path = record['file_path']
             data = record['data']
             
-            cur.execute(self.INSERTsql_tmp %(self._config.get('production_separate_db', 'tablename_2'), created_at, data))
+            cur.execute(self.INSERTsql_tmp %(self._config.get('production_separate_db', 'tablename_2'), file_path, data))
 
             print("inserted into tmp sucessfully!")
             self._conn.commit()
