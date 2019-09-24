@@ -67,6 +67,15 @@ def process_resume():
 
     db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
 
+    task_pii = {
+        "individual_id": individual_id,
+        "file_path": request.json["filepath"],
+        "pii_json": PIIs,
+        "extracted_on": 'NOW()'
+    }
+
+    db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
+
     return jsonify(task), 201
 
 @app.route('/update/', methods=['POST'])
