@@ -29,7 +29,7 @@ class db_connection_WRITE:
         self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
         self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
-        
+        self.INSERTsql_tmp = self._config.get('production_separate_db', 'insert_tmp')  
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
@@ -143,7 +143,7 @@ class db_connection_WRITE:
         '''
         with self._conn:
             cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
-            cur.execute(self.SELECTsql_pii %('pii'))
+            cur.execute(self.SELECTsql_pii %(self._config.get('piis_db', 'tablename')))
             rows = cur.fetchall()
         return rows
 
@@ -158,16 +158,44 @@ class db_connection_WRITE:
         with self._conn:
             cur = self._conn.cursor()
 
-            js_documents_id = record['js_documents_id']
             individual_id = record['individual_id']
+            file_path = record['file_path']
+            extracted_on = record['extracted_on']
             pii_json = json.dumps(record['pii_json'])
-
-            cur.execute(self.INSERTsql_pii, (js_documents_id, individual_id, pii_json))
+            
+            print(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            cur.execute(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            
             print("inserted sucessfully into pii talble!")
             self._conn.commit()
 
+    # function: insert logging statements into database
+    # input: ran during exceptions called during any of the functions in process_string or convert_to_text
+    def _insert_tmp(self, record):
+        # return "hello tonyytonggg"
+        with self._conn:
+            '''
+            '''
+            cur = self._conn.cursor()
+
+            file_path = record['file_path']
+            data = record['data']
+            
+            cur.execute(self.INSERTsql_tmp %(self._config.get('production_separate_db', 'tablename_2'), file_path, data))
+
+            print("inserted into tmp sucessfully!")
+            self._conn.commit()
+
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-# db = db_connection_WRITE("Software_Engineering/database_WRITE_config.ini")
+db = db_connection_WRITE("database_WRITE_config.ini")
+# record = {
+#     "individual_id": 'aa',
+#     "file_path": 'bb',
+#     "pii_json": {"name": "ttt"},
+#     "extracted_on": 'NOW()',
+#     }
+# db.insert_pii(record)
+
 # db._update_main({"individual_id":"Testing_ID", "file_name":"Testing_PDF2", "is_delete": 1})
 
 
