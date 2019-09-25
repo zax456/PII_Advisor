@@ -39,44 +39,52 @@ def cron_scan():
 # output: flagged PIIs, filtered contents, operation type, job id in JSON format
 @app.route('/upload/', methods=['POST', 'GET'])
 def process_resume():
+    try:
+        raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
 
-    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+        PIIs, parsed_contents = process_string.process_string(raw_contents)
 
-    PIIs, parsed_contents = process_string.process_string(raw_contents)
+        full_filename = request.json["filepath"].lower().split('/')[-1]
+        filename = full_filename.split('.')[0]
+        file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
+        individual_id = "ID_testingV2"
+        # individual_id = get_user_id() # TO BE Implemented later
 
-    full_filename = request.json["filepath"].lower().split('/')[-1]
-    filename = full_filename.split('.')[0]
-    file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
-    individual_id = "ID_testingV2"
-    # individual_id = get_user_id() # TO BE Implemented later
+        task = {
+            "individual_id": individual_id,
+            "file_name": filename,
+            "file_extension": file_extension,
+            "file_size": 3, #how to get file size?
+            "document_category": "Secret",
+            "is_default": 1,
+            "file_path": request.json["filepath"],
+            "created_by": individual_id,
+            "created_on": dt.datetime.now(),
+            "modified_by": individual_id,
+            "modified_on": dt.datetime.now(),
+            "parsed_content_v2": parsed_contents,
+            }
 
-    task = {
-        "individual_id": individual_id,
-        "file_name": filename,
-        "file_extension": file_extension,
-        "file_size": 3, #how to get file size?
-        "document_category": "Secret",
-        "is_default": 1,
-        "file_path": request.json["filepath"],
-        "created_by": individual_id,
-        "created_on": dt.datetime.now(),
-        "modified_by": individual_id,
-        "modified_on": dt.datetime.now(),
-        "parsed_content_v2": parsed_contents,
-        }
+        db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
 
-    db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
-
-    task_pii = {
+        task_pii = {
         "individual_id": individual_id,
         "file_path": request.json["filepath"],
         "pii_json": PIIs,
         "extracted_on": 'NOW()'
-    }
+        }
+    
+        db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
+        
+        return jsonify(task), 201
 
-    db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
-
-    return jsonify(task), 201
+    except Exception as e: 
+        tmp = {
+            "file_path": request.json["filepath"],
+            "data": e
+            }
+        db_function_write._insert_tmp(tmp)
+        return
 
 @app.route('/update/', methods=['POST'])
 def update_resume():

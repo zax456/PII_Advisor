@@ -8,6 +8,8 @@ import spacy
 #from pdfminer.layout import LAParams
 #from pdfminer.pdfpage import PDFPage
 #from io import StringIO
+from db_connection_WRITE import db_connection_WRITE
+db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 def process_string(raw_text):
     """
@@ -29,8 +31,13 @@ def process_string(raw_text):
         PIIs = flagging(raw_text)
         parse_text = parsing(raw_text, PIIs)
         return PIIs, parse_text
-    except:
-        print("process_string returned an error")
+    except Exception as e: 
+        tmp = {
+        "file_path": "process_string function",
+        "data": e
+        }
+        db_function_write._insert_tmp(tmp)
+        return
     # return ("Successfully processed and uploaded resume into database!")
 
 def flagging(raw_text):
@@ -62,15 +69,12 @@ def flagging(raw_text):
                 'name':[name] if name else []
                 }
     except Exception as e: 
-        print(e)
-        print("flagging returned an error")
-        # print({'nric':nric,
-        #         'email':email_address,
-        #         'phone':phone_number,
-        #         'address':[physical_address] if physical_address else [],
-        #         'name':[name] if name else []
-        #         })
-
+        tmp = {
+        "file_path": "flagging function",
+        "data": e
+        }
+        db_function_write._insert_tmp(tmp)
+        return
 
 def parsing(raw_text, dic):
     """
@@ -106,9 +110,12 @@ def parsing(raw_text, dic):
         # if PIIs then remove 
         return processed_text
     except Exception as e: 
-        print(e)
-        print("parsing returned an error")
-        # print(processed_text)
+        tmp = {
+        "file_path": "parsing function",
+        "data": e
+        }
+        db_function_write._insert_tmp(tmp)
+        return
 
 def process_name(raw_text):
     """
@@ -126,5 +133,10 @@ def process_name(raw_text):
         for ent in doc.ents:  
             if ent.label_ == "NAME":
                 return ent.text
-    except:
-        print("process_name returned an error") 
+    except Exception as e: 
+        tmp = {
+        "file_path": "process_name function",
+        "data": e
+        }
+        db_function_write._insert_tmp(tmp)
+        return
