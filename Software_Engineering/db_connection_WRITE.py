@@ -5,6 +5,7 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import json
+import ast
 
 class db_connection_WRITE:
 
@@ -27,6 +28,7 @@ class db_connection_WRITE:
         self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
         self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
+        self.SELECTsql_pii_time = self._config.get('piis_db', 'select_pii_time')
         self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
         self.INSERTsql_tmp = self._config.get('production_separate_db', 'insert_tmp')  
@@ -134,26 +136,50 @@ class db_connection_WRITE:
         self._conn.commit()
         return "\nUpdate sucessfully!"
 
-    # TODO
-    # function: retrieve all PIIs of uploaded resumes
-    # input: Not sure yet...need to discuss with Tony/CY
-    def select_pii(self):
+    def select_pii(self, hour=None):
         '''
-        returns all records in PII table
+        Generates Cron report with statistics on PIIs etc (TBC)
+        Input:
+            time interveral to extract data from (int)
+        Output:
+            Dictionary with different statistics of the hard PIIs (more details to be included soon)
         '''
         with self._conn:
-            cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
-            cur.execute(self.SELECTsql_pii %(self._config.get('piis_db', 'tablename')))
+            cur = self._conn.cursor() 
+            
+            if hour != None:
+                cur.execute( self.SELECTsql_pii_time %(self._config.get('piis_db', 'tablename'), hour) )
+            else:
+                cur.execute( self.SELECTsql_pii %(self._config.get('piis_db', 'tablename')) )
             rows = cur.fetchall()
-        return rows
 
-    # TODO
+            result = {
+                "name": 0,
+                "nric": 0,
+                "email": 0,
+                "phone": 0,
+                "address": 0
+                }
+            for row in rows:
+                PIIs = ast.literal_eval(row[3])
+                for key, value in PIIs.items():
+                    if value:
+                        result[key] += 1
+            
+        return result
+
     # function: insert PIIs of uploaded resumes
     # input: JSON object containing 1) job_id from main table, 2) individual_id (user), 
     #                               3) name, 4) nric, 5) email, 6) phone_number, 7) physical_address
     def insert_pii(self, record):
         '''
         Insert flagged PIIs for uploaded resume
+        Input:
+            :record: dictionary consisting of
+                        :"individual_id": string
+                        :"file_path": string
+                        :"pii_json": dict of hard PIIs
+                        :"extracted_on": datetime
         '''
         with self._conn:
             cur = self._conn.cursor()
@@ -166,15 +192,17 @@ class db_connection_WRITE:
             print(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
             cur.execute(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
             
-            print("inserted sucessfully into pii talble!")
+            print("inserted sucessfully into pii table!")
             self._conn.commit()
 
     # function: insert logging statements into database
     # input: ran during exceptions called during any of the functions in process_string or convert_to_text
     def _insert_tmp(self, record):
-        # return "hello tonyytonggg"
         with self._conn:
             '''
+            insert error logs into tmp table
+            Input:
+                :record: dictionary consisting of file path (string), error log (string)
             '''
             cur = self._conn.cursor()
 
@@ -187,7 +215,8 @@ class db_connection_WRITE:
             self._conn.commit()
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-db = db_connection_WRITE("database_WRITE_config.ini")
+# db = db_connection_WRITE("Software_Engineering\database_WRITE_config.ini")
+
 # record = {
 #     "individual_id": 'aa',
 #     "file_path": 'bb',
