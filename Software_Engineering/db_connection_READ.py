@@ -2,6 +2,7 @@ import pymysql
 from pprint import pprint
 import configparser
 import datetime as dt
+import os
 
 class db_connection_READ:
 
@@ -10,18 +11,18 @@ class db_connection_READ:
         self._config.read(config_path)
 
         # setting up the connection to database
-        self._conn = pymysql.connect(host = self._config.get('production_db', 'host'), 
-                                        user = self._config.get('production_db', 'user'), 
-                                        port = self._config.getint('production_db', 'port'), 
-                                        passwd = self._config.get('production_db', 'password'), 
-                                        db = self._config.get('production_db', 'dbname')
+        self._conn = pymysql.connect(host = os.environ['PROD_HOST'], 
+                                        user = os.environ['PROD_USER'], 
+                                        port = int(os.environ['PROD_PORT']), # note port number needs to be in INT format, not string in the env variable! 
+                                        passwd = os.environ['PROD_PASSWORD'], 
+                                        db = os.environ['PROD_DBNAME']
                                         )
 
         ## SQL statements
         # self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('rds_database', 'tablename'), 
         #                                                             self._config.getint('rds_database', 'time_interval'))
 
-        self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('production_db', 'tablename'))
+        self.SELECTsql = self._config.get('sql_queries', 'select') %(os.environ['PROD_TABLENAME'])
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)

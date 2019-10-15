@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import json
 import ast
+import os
 
 class db_connection_WRITE:
 
@@ -14,11 +15,11 @@ class db_connection_WRITE:
         self._config.read(config_path)
 
         # setting up the connection to database
-        self._conn = pymysql.connect(host = self._config.get('production_separate_db', 'host'), 
-                                    user = self._config.get('production_separate_db', 'user'), 
-                                    port = self._config.getint('production_separate_db', 'port'), 
-                                    passwd = self._config.get('production_separate_db', 'password'), 
-                                    db = self._config.get('production_separate_db', 'dbname')
+        self._conn = pymysql.connect(host = os.environ['PROD_SEP_HOST'], 
+                                    user = os.environ['PROD_SEP_USER'], 
+                                    port = int(os.environ['PROD_SEP_PORT']), 
+                                    passwd = os.environ['PROD_SEP_PASSWORD'], 
+                                    db = os.environ['PROD_SEP_DBNAME']
                                     )
 
         ## SQL statements
@@ -66,7 +67,7 @@ class db_connection_WRITE:
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
 
-            cur.execute(self.INSERTsql_main %(self._config.get('production_separate_db', 'tablename'), 
+            cur.execute(self.INSERTsql_main %(os.environ['PROD_SEP_TABLENAME'], 
                                             individual_id, file_name, file_extension, file_size, 
                                             document_category, is_default, file_path, 
                                             created_by, modified_by,
@@ -84,7 +85,7 @@ class db_connection_WRITE:
         file_name = record['file_name']
 
         cur.execute(self.SELECT_resume 
-                    %(self._config.get('production_separate_db', 'tablename'), individual_id, file_name))
+                    %(os.environ['PROD_SEP_TABLENAME'], individual_id, file_name))
 
         cols = self._config.get('production_separate_db', 'columns').split(',')
         resume = pd.DataFrame( [list(cur.fetchall()[0])], columns=cols)
@@ -113,11 +114,11 @@ class db_connection_WRITE:
                 # make default to be the previous resume
                 cur.execute("UPDATE %s SET is_default = 1 WHERE individual_id = '%s' AND is_default = 0 AND is_deleted <> 1 \
                             ORDER BY created_on DESC LIMIT 1" 
-                            %(self._config.get('production_separate_db', 'tablename'), individual_id))
+                            %(os.environ['PROD_SEP_TABLENAME'], individual_id))
 
             # delete and un-default selected resume
             cur.execute(self.UPDATEsql_main 
-                        %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
+                        %(os.environ['PROD_SEP_TABLENAME'], is_default, is_delete, individual_id, ID))
 
         # Change default resume to selected resume
         elif (is_default == 1):
@@ -127,11 +128,11 @@ class db_connection_WRITE:
 
             # update current default resume's is_default = 0
             cur.execute("UPDATE %s SET is_default=0 WHERE individual_id='%s' AND is_default=1" 
-                        %(self._config.get('production_separate_db', 'tablename'), individual_id))
+                        %(os.environ['PROD_SEP_TABLENAME'], individual_id))
             
             # update new default to the selected resume
             cur.execute(self.UPDATEsql_main 
-                        %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
+                        %(os.environ['PROD_SEP_TABLENAME'], is_default, is_delete, individual_id, ID))
 
         self._conn.commit()
         return "\nUpdate sucessfully!"
@@ -148,9 +149,9 @@ class db_connection_WRITE:
             cur = self._conn.cursor() 
             
             if hour != None:
-                cur.execute( self.SELECTsql_pii_time %(self._config.get('piis_db', 'tablename'), hour) )
+                cur.execute( self.SELECTsql_pii_time %(os.environ['PII_DB_TABLENAME'], hour) )
             else:
-                cur.execute( self.SELECTsql_pii %(self._config.get('piis_db', 'tablename')) )
+                cur.execute( self.SELECTsql_pii %(os.environ['PII_DB_TABLENAME']) )
             rows = cur.fetchall()
 
             result = {
@@ -189,8 +190,8 @@ class db_connection_WRITE:
             extracted_on = record['extracted_on']
             pii_json = json.dumps(record['pii_json'])
             
-            print(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
-            cur.execute(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            print(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            cur.execute(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
             
             print("inserted sucessfully into pii table!")
             self._conn.commit()
@@ -209,7 +210,7 @@ class db_connection_WRITE:
             file_path = record['file_path']
             data = record['data']
             
-            cur.execute(self.INSERTsql_tmp %(self._config.get('production_separate_db', 'tablename_2'), file_path, data))
+            cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
 
             print("inserted into tmp sucessfully!")
             self._conn.commit()
