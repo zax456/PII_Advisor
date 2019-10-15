@@ -5,6 +5,8 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import json
+import ast
+import os
 
 class db_connection_WRITE:
 
@@ -13,11 +15,11 @@ class db_connection_WRITE:
         self._config.read(config_path)
 
         # setting up the connection to database
-        self._conn = pymysql.connect(host = self._config.get('production_separate_db', 'host'), 
-                                    user = self._config.get('production_separate_db', 'user'), 
-                                    port = self._config.getint('production_separate_db', 'port'), 
-                                    passwd = self._config.get('production_separate_db', 'password'), 
-                                    db = self._config.get('production_separate_db', 'dbname')
+        self._conn = pymysql.connect(host = os.environ['PROD_SEP_HOST'], 
+                                    user = os.environ['PROD_SEP_USER'], 
+                                    port = int(os.environ['PROD_SEP_PORT']), 
+                                    passwd = os.environ['PROD_SEP_PASSWORD'], 
+                                    db = os.environ['PROD_SEP_DBNAME']
                                     )
 
         ## SQL statements
@@ -27,6 +29,7 @@ class db_connection_WRITE:
         self.SELECT_resume = self._config.get('production_separate_db', 'get_resume')
 
         self.SELECTsql_pii = self._config.get('piis_db', 'select_pii')
+        self.SELECTsql_pii_time = self._config.get('piis_db', 'select_pii_time')
         self.INSERTsql_pii = self._config.get('piis_db', 'insert_pii')
 
         self.INSERTsql_tmp = self._config.get('production_separate_db', 'insert_tmp')  
@@ -64,7 +67,7 @@ class db_connection_WRITE:
             parsed_content_v2 = record['parsed_content_v2']
             individual_id = record['individual_id']
 
-            cur.execute(self.INSERTsql_main %(self._config.get('production_separate_db', 'tablename'), 
+            cur.execute(self.INSERTsql_main %(os.environ['PROD_SEP_TABLENAME'], 
                                             individual_id, file_name, file_extension, file_size, 
                                             document_category, is_default, file_path, 
                                             created_by, modified_by,
@@ -82,7 +85,7 @@ class db_connection_WRITE:
         file_name = record['file_name']
 
         cur.execute(self.SELECT_resume 
-                    %(self._config.get('production_separate_db', 'tablename'), individual_id, file_name))
+                    %(os.environ['PROD_SEP_TABLENAME'], individual_id, file_name))
 
         cols = self._config.get('production_separate_db', 'columns').split(',')
         resume = pd.DataFrame( [list(cur.fetchall()[0])], columns=cols)
@@ -111,11 +114,11 @@ class db_connection_WRITE:
                 # make default to be the previous resume
                 cur.execute("UPDATE %s SET is_default = 1 WHERE individual_id = '%s' AND is_default = 0 AND is_deleted <> 1 \
                             ORDER BY created_on DESC LIMIT 1" 
-                            %(self._config.get('production_separate_db', 'tablename'), individual_id))
+                            %(os.environ['PROD_SEP_TABLENAME'], individual_id))
 
             # delete and un-default selected resume
             cur.execute(self.UPDATEsql_main 
-                        %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
+                        %(os.environ['PROD_SEP_TABLENAME'], is_default, is_delete, individual_id, ID))
 
         # Change default resume to selected resume
         elif (is_default == 1):
@@ -125,35 +128,59 @@ class db_connection_WRITE:
 
             # update current default resume's is_default = 0
             cur.execute("UPDATE %s SET is_default=0 WHERE individual_id='%s' AND is_default=1" 
-                        %(self._config.get('production_separate_db', 'tablename'), individual_id))
+                        %(os.environ['PROD_SEP_TABLENAME'], individual_id))
             
             # update new default to the selected resume
             cur.execute(self.UPDATEsql_main 
-                        %(self._config.get('production_separate_db', 'tablename'), is_default, is_delete, individual_id, ID))
+                        %(os.environ['PROD_SEP_TABLENAME'], is_default, is_delete, individual_id, ID))
 
         self._conn.commit()
         return "\nUpdate sucessfully!"
 
-    # TODO
-    # function: retrieve all PIIs of uploaded resumes
-    # input: Not sure yet...need to discuss with Tony/CY
-    def select_pii(self):
+    def select_pii(self, hour=None):
         '''
-        returns all records in PII table
+        Generates Cron report with statistics on PIIs etc (TBC)
+        Input:
+            time interveral to extract data from (int)
+        Output:
+            Dictionary with different statistics of the hard PIIs (more details to be included soon)
         '''
         with self._conn:
-            cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
-            cur.execute(self.SELECTsql_pii %(self._config.get('piis_db', 'tablename')))
+            cur = self._conn.cursor() 
+            
+            if hour != None:
+                cur.execute( self.SELECTsql_pii_time %(os.environ['PII_DB_TABLENAME'], hour) )
+            else:
+                cur.execute( self.SELECTsql_pii %(os.environ['PII_DB_TABLENAME']) )
             rows = cur.fetchall()
-        return rows
 
-    # TODO
+            result = {
+                "name": 0,
+                "nric": 0,
+                "email": 0,
+                "phone": 0,
+                "address": 0
+                }
+            for row in rows:
+                PIIs = ast.literal_eval(row[3])
+                for key, value in PIIs.items():
+                    if value:
+                        result[key] += 1
+            
+        return result
+
     # function: insert PIIs of uploaded resumes
     # input: JSON object containing 1) job_id from main table, 2) individual_id (user), 
     #                               3) name, 4) nric, 5) email, 6) phone_number, 7) physical_address
     def insert_pii(self, record):
         '''
         Insert flagged PIIs for uploaded resume
+        Input:
+            :record: dictionary consisting of
+                        :"individual_id": string
+                        :"file_path": string
+                        :"pii_json": dict of hard PIIs
+                        :"extracted_on": datetime
         '''
         with self._conn:
             cur = self._conn.cursor()
@@ -163,31 +190,34 @@ class db_connection_WRITE:
             extracted_on = record['extracted_on']
             pii_json = json.dumps(record['pii_json'])
             
-            print(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
-            cur.execute(self.INSERTsql_pii %(self._config.get('piis_db', 'tablename'), "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            print(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            cur.execute(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
             
-            print("inserted sucessfully into pii talble!")
+            print("inserted sucessfully into pii table!")
             self._conn.commit()
 
     # function: insert logging statements into database
     # input: ran during exceptions called during any of the functions in process_string or convert_to_text
     def _insert_tmp(self, record):
-        # return "hello tonyytonggg"
         with self._conn:
             '''
+            insert error logs into tmp table
+            Input:
+                :record: dictionary consisting of file path (string), error log (string)
             '''
             cur = self._conn.cursor()
 
             file_path = record['file_path']
             data = record['data']
             
-            cur.execute(self.INSERTsql_tmp %(self._config.get('production_separate_db', 'tablename_2'), file_path, data))
+            cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
 
             print("inserted into tmp sucessfully!")
             self._conn.commit()
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
-db = db_connection_WRITE("database_WRITE_config.ini")
+# db = db_connection_WRITE("Software_Engineering\database_WRITE_config.ini")
+
 # record = {
 #     "individual_id": 'aa',
 #     "file_path": 'bb',

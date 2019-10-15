@@ -12,7 +12,7 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 # TEST COMMANDS
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/update/ -d '{"individual_id": "ID_testingV2", "file_name": "kh_resume_pdf1", "is_default": 0}'
-# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":"24"}'
+# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":24}'
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 
@@ -26,10 +26,19 @@ app = Flask(__name__)
 
 @app.route('/cron_scan/', methods=['GET'])
 def cron_scan():
+    try:
+        hour = request.json["time_duration"]
+        results = db_function_write.select_pii(hour)
+        
+    except Exception as e:
+        tmp = {
+            "file_path": request.json["filepath"],
+            "data": e
+            }
+        db_function_write._insert_tmp(tmp)
+        return
 
-    results = db_connection_WRITE.select_pii(request.json["time_duration"])
-
-    return "hello world"
+    return jsonify(results), 201
 
 # This function sends the uploaded resume to our scanning and masking functions 
 # which will flag out PIIs and mask them inside the resume
