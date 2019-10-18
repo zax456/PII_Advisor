@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, abort, make_response, json
 import pymysql, sys
 import datetime as dt
 import re
+import os
 from db_connection_READ import db_connection_READ
 from db_connection_WRITE import db_connection_WRITE
 import convert_to_text
@@ -13,6 +14,7 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/update/ -d '{"individual_id": "ID_testingV2", "file_name": "kh_resume_pdf1", "is_default": 0}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":24}'
+# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/directory_scan/
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 
@@ -24,6 +26,24 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 app = Flask(__name__)
 
+@app.route('/directory_scan/', methods=['GET'])
+def directory_scan():
+    directory = "../data_science/unit_tests/sample_resumes"
+    result = []
+    try:
+        for dirName, subdirList, fileList in os.walk(directory):
+            for file in fileList:
+                result.append(os.path.join(dirName, file))
+    except Exception as e:
+        tmp = {
+            "function": "directory_scan",
+            "data": e
+            }
+        db_function_write._insert_tmp(tmp)
+        return
+
+    return jsonify(result), 201
+
 @app.route('/cron_scan/', methods=['GET'])
 def cron_scan():
     try:
@@ -32,7 +52,7 @@ def cron_scan():
         
     except Exception as e:
         tmp = {
-            "file_path": request.json["filepath"],
+            "function": "cron_scan",
             "data": e
             }
         db_function_write._insert_tmp(tmp)
@@ -98,19 +118,24 @@ def process_resume():
 @app.route('/update/', methods=['POST'])
 def update_resume():
 
-    data = request.get_json()
-    is_default = data.get('is_default', 0)
-    is_delete = data.get('is_delete', 0)
-    filename = data.get('file_name', 0)
-    individual_id = data.get('individual_id', "No Name")
-    # individual_id = get_user_id() # TO BE Implemented later
-
-    task = {
-        "individual_id": individual_id,
-        "is_default": is_default,
-        "is_delete": is_delete,
-        "file_name": filename
-    }
+    try:
+        data = request.get_json()
+        is_default = data.get('is_default', 0)
+        is_delete = data.get('is_delete', 0)
+        filename = data.get('file_name', 0)
+        individual_id = data.get('individual_id', "No Name")
+        # individual_id = get_user_id() # TO BE Implemented later
+        task = {
+            "individual_id": individual_id,
+            "is_default": is_default,
+            "is_delete": is_delete,
+            "file_name": filename
+        }
+    except Exception as e:
+        tmp = {
+            "function": "update_resume",
+            "data": e
+        }
 
     result = db_function_write._update_main(task)
 
