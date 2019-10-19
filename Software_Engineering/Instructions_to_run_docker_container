@@ -30,4 +30,7 @@ If you would like to see how `dst` could be created, run this:
 docker run -it -v "$(pwd)":/dst debian bash
 This command appends your current directory into the `dst` directory in Docker
 
+To check if files have been mounted into docker after docker-compose up -d
+Run "docker-compose exec web bash"
+
 * Joseph recommends putting all our commands into a `docker-compose.yml` to automate them eventually.

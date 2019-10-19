@@ -16,9 +16,9 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":438}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/directory_scan/
 # curl -X GET http://0.0.0.0:5000/directory_scan/
-# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/ -d '{"filepath":"Resumes/kh_resume_pdf1.pdf"}'
+# curl -X GET http://192.168.99.100:5000/
+# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/ -d '{"filepath":"./sample_resumes/kh_resume_pdf1.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://0.0.0.0:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
-
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 
 
@@ -31,43 +31,28 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def test_fn():
-    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
-
-    PIIs, parsed_contents = process_string.process_string(raw_contents)
-    # result = []
-    # try:
-    #     for dirName, subdirList, fileList in os.walk(directory):
-    #         for file in fileList:
-    #             result.append(os.path.join(dirName, file))
-    # except Exception as e:
-    #     tmp = {
-    #         "function": "directory_scan",
-    #         "data": e
-    #         }
-    #     db_function_write._insert_tmp(tmp)
-    #     return
-
-    return print('\n', raw_contents)
+    return "\nThis is a test function!"
 
 @app.route('/directory_scan/', methods=['GET'])
 def directory_scan():
-    # directory = "../data_science/unit_tests/sample_resumes"
-    directory = os.getcwd()
-    result = {"directory": directory}
-    # result = []
-    # try:
-    #     for dirName, subdirList, fileList in os.walk(directory):
-    #         for file in fileList:
-    #             result.append(os.path.join(dirName, file))
-    # except Exception as e:
-    #     tmp = {
-    #         "function": "directory_scan",
-    #         "data": e
-    #         }
-    #     db_function_write._insert_tmp(tmp)
-    #     return
+    directory = "sample_resumes/"
+    
+    result = []
+    try:
+        for dirName, subdirList, fileList in os.walk(directory):
+            for file in fileList:
+                filepath = os.path.join(dirName, file)
+                process_resume(filepath)
+                
+    except Exception as e:
+        tmp = {
+            "function": "directory_scan",
+            "data": e
+            }
+        db_function_write._insert_tmp(tmp)
+        return
 
-    return jsonify(result), 201
+    return "\nFinished scanning resume directory", 201
 
 @app.route('/cron_scan/', methods=['GET'])
 def cron_scan():
@@ -85,33 +70,44 @@ def cron_scan():
 
     return jsonify(results), 201
 
-# This function sends the uploaded resume to our scanning and masking functions 
-# which will flag out PIIs and mask them inside the resume
-# they will return both the flagged PIIs or masked contents back 
-# after which, it will generate a job id and store the contents inside the database
-# input: operation to be applied on Resume
-# output: flagged PIIs, filtered contents, operation type, job id in JSON format
 @app.route('/upload/', methods=['POST', 'GET'])
-def process_resume():
+def process_resume(filepath=None):
+    """
+    This function sends the uploaded resume to our scanning and masking functions 
+    which will flag out PIIs and mask them inside the resume. They will return both the flagged PIIs or masked contents back. 
+    After which, it will generate a job id and store the contents inside the database
+    
+    Input: 
+        :filepath: location where resume is stored in
+    
+    Output: 
+        flagged PIIs, filtered contents, job id in JSON format
+    """
     try:
-        raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+        raw_contents = ""
+        if filepath == None:
+            raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+        else:
+            raw_contents = convert_to_text.convert_to_text(filepath)
 
         PIIs, parsed_contents = process_string.process_string(raw_contents)
+        # result = {"raw":raw_contents, "piis": PIIs, "paresed": parsed_contents}
 
-        full_filename = request.json["filepath"].lower().split('/')[-1]
+        path = request.json["filepath"] if filepath==None else filepath
+        full_filename = path.lower().split('/')[-1] 
         filename = full_filename.split('.')[0]
         file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
         individual_id = "ID_testingV2"
-        # individual_id = get_user_id() # TO BE Implemented later
+        # individual_id = get_user_id() # TODO Need to ask Joseph how to get individual ID...Implement later
 
         task = {
             "individual_id": individual_id,
             "file_name": filename,
             "file_extension": file_extension,
-            "file_size": 3, #how to get file size?
+            "file_size": os.path.getsize(path) >> 10, #how to get file size?
             "document_category": "Secret",
             "is_default": 1,
-            "file_path": request.json["filepath"],
+            "file_path": path,
             "created_by": individual_id,
             "created_on": dt.datetime.now(),
             "modified_by": individual_id,
@@ -123,7 +119,7 @@ def process_resume():
 
         task_pii = {
         "individual_id": individual_id,
-        "file_path": request.json["filepath"],
+        "file_path": path,
         "pii_json": PIIs,
         "extracted_on": 'NOW()'
         }
@@ -134,7 +130,7 @@ def process_resume():
 
     except Exception as e: 
         tmp = {
-            "file_path": request.json["filepath"],
+            "file_path": request.json["filepath"] if filepath==None else filepath,
             "data": e
             }
         db_function_write._insert_tmp(tmp)
@@ -149,7 +145,8 @@ def update_resume():
         is_delete = data.get('is_delete', 0)
         filename = data.get('file_name', 0)
         individual_id = data.get('individual_id', "No Name")
-        # individual_id = get_user_id() # TO BE Implemented later
+        # individual_id = get_user_id() # TODO Need to ask Joseph how to get individual ID...Implement later
+
         task = {
             "individual_id": individual_id,
             "is_default": is_default,
