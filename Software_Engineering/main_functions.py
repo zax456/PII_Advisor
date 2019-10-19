@@ -32,7 +32,7 @@ app = Flask(__name__)
 def test_fn():
     # directory = "../data_science/unit_tests/sample_resumes"
     directory = os.getcwd()
-    result = {"directory": directory}
+    result = {"directory": "It works!"}
     # result = []
     # try:
     #     for dirName, subdirList, fileList in os.walk(directory):
