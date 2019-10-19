@@ -31,7 +31,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET'])
 def test_fn():
     # directory = "../data_science/unit_tests/sample_resumes"
-    directory = os.getcwd()
+    # directory = os.getcwd()
     result = {"directory": "It works!"}
     # result = []
     # try:
