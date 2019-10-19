@@ -34,7 +34,7 @@ The READ should be from GovTech's database that contain the resume filepaths, an
 
 The 1st WRITE should also be to GovTech's database that contains the WRITE location for the output of the Docker functions, i.e the masked PIIs. This might have the same credentials as the READ database above, but the choice of decoupling is available here. 
 
-These variables are prefixed with [`PROD_SEP_HOST`, `PROD_SEP_USER`, `PROD_SEP_PORT`, `PROD_SEP_PASSWORD`, `PROD_SEP_DBNAME`, `PROD_SEP_TABLENAME`, `PROD_SEP_TABLENAME_2`].
+The variables are [`PROD_SEP_HOST`, `PROD_SEP_USER`, `PROD_SEP_PORT`, `PROD_SEP_PASSWORD`, `PROD_SEP_DBNAME`, `PROD_SEP_TABLENAME`, `PROD_SEP_TABLENAME_2`].
 
 `PROD_SEP_TABLENAME` is the table that contains the masked PII data.
 
@@ -76,7 +76,7 @@ create table pii
 );
 ```
 
-These variables are prefixed with [`PII_DB_HOST`, `PII_DB_USER`, `PII_DB_PORT`, `PII_DB_PASSWORD`, `PII_DB_DBNAME`, `PII_DB_TABLENAME`].
+The variables are [`PII_DB_HOST`, `PII_DB_USER`, `PII_DB_PORT`, `PII_DB_PASSWORD`, `PII_DB_DBNAME`, `PII_DB_TABLENAME`].
 
 | Key | Description |
 | --- | --- |
