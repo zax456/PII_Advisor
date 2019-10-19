@@ -28,6 +28,26 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def test_fn():
+    # directory = "../data_science/unit_tests/sample_resumes"
+    directory = os.getcwd()
+    result = {"directory": directory}
+    # result = []
+    # try:
+    #     for dirName, subdirList, fileList in os.walk(directory):
+    #         for file in fileList:
+    #             result.append(os.path.join(dirName, file))
+    # except Exception as e:
+    #     tmp = {
+    #         "function": "directory_scan",
+    #         "data": e
+    #         }
+    #     db_function_write._insert_tmp(tmp)
+    #     return
+
+    return jsonify(result), 201
+
 @app.route('/directory_scan/', methods=['GET'])
 def directory_scan():
     # directory = "../data_science/unit_tests/sample_resumes"
