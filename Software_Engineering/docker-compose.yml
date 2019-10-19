@@ -7,6 +7,7 @@ services:
     volumes:
     # - /Users/tonytonggg/Desktop/:/dst
     - ./data_science/unit_tests/sample_resumes/:/Resumes
+    # - ./data_science/unit_tests/sample_resumes/:/usr/src/app
 
 # run this command: docker-compose up with this file in main directory
 # rmb that using this, need to call files from the /dst pathing

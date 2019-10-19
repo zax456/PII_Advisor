@@ -16,6 +16,7 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":438}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/directory_scan/
 # curl -X GET http://0.0.0.0:5000/directory_scan/
+# curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/ -d '{"filepath":"Resumes/kh_resume_pdf1.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://0.0.0.0:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
@@ -30,8 +31,9 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def test_fn():
-    directory = "../data_science/unit_tests/sample_resumes"
-    result = {"directory": directory}
+    raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
+
+    PIIs, parsed_contents = process_string.process_string(raw_contents)
     # result = []
     # try:
     #     for dirName, subdirList, fileList in os.walk(directory):
@@ -45,7 +47,7 @@ def test_fn():
     #     db_function_write._insert_tmp(tmp)
     #     return
 
-    return jsonify(result), 201
+    return print('\n', raw_contents)
 
 @app.route('/directory_scan/', methods=['GET'])
 def directory_scan():
