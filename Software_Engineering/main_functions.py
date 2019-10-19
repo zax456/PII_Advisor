@@ -32,18 +32,19 @@ app = Flask(__name__)
 def directory_scan():
     # directory = "../data_science/unit_tests/sample_resumes"
     directory = os.getcwd()
-    result = []
-    try:
-        for dirName, subdirList, fileList in os.walk(directory):
-            for file in fileList:
-                result.append(os.path.join(dirName, file))
-    except Exception as e:
-        tmp = {
-            "function": "directory_scan",
-            "data": e
-            }
-        db_function_write._insert_tmp(tmp)
-        return
+    result = {"directory": "WHAT?"}
+    # result = []
+    # try:
+    #     for dirName, subdirList, fileList in os.walk(directory):
+    #         for file in fileList:
+    #             result.append(os.path.join(dirName, file))
+    # except Exception as e:
+    #     tmp = {
+    #         "function": "directory_scan",
+    #         "data": e
+    #         }
+    #     db_function_write._insert_tmp(tmp)
+    #     return
 
     return jsonify(result), 201
 
