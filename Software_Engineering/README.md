@@ -22,21 +22,21 @@ make run;
 
 ## Environment Variables
 
-Below, we can see 3 sets of database environmental databases.
+To facilitate testing, we have split up the database into 3 parts, 1 for READ, and 2 for WRITE. 
 
-To facilitate testing, we have split up 3 databases, 1 for READ, and 2 for WRITE. 
+Below is the description of 3 sets of database environmental variables.
 
 ## READ Database
 
-The READ should be from GovTech's database that contain the resume filepaths, and is prefixed with `PROD` in the env variables as [`PROD_HOST`, `PROD_USER`, `PROD_PORT`, `PROD_PASSWORD`, `PROD_DBNAME`, `PROD_TABLENAME`].
+The READ should be from GovTech's database that contains the resume details such as filenames and filepaths, and is prefixed with `PROD` in the env variables as [`PROD_HOST`, `PROD_USER`, `PROD_PORT`, `PROD_PASSWORD`, `PROD_DBNAME`, `PROD_TABLENAME`].
 
 ## WRITE Database 1
 
-The 1st WRITE should also be to GovTech's database that contains the WRITE location for the output of the Docker functions, i.e the masked PIIs. This might have the same credentials as the READ database above, but the choice of decoupling is available here. 
+The 1st WRITE should also be to GovTech's database that contains the WRITE location for the output of the Docker functions, i.e the masked resume. This might have the same credentials as the READ database above, but the choice of decoupling is available here. 
 
 The variables are [`PROD_SEP_HOST`, `PROD_SEP_USER`, `PROD_SEP_PORT`, `PROD_SEP_PASSWORD`, `PROD_SEP_DBNAME`, `PROD_SEP_TABLENAME`, `PROD_SEP_TABLENAME_2`].
 
-`PROD_SEP_TABLENAME` is the table that contains the masked PII data.
+`PROD_SEP_TABLENAME` is the table that contains the masked resume data.
 
 `PROD_SEP_TABLENAME_2` contains the logs from the exceptions, or function errors in Docker during the masking. They are meant for debugging, especially without access to the raw resume files.
 
@@ -45,8 +45,7 @@ The schema for this `PROD_SEP_TABLENAME_2` table, which is currently named `tmp`
 ```sh
 create table tmp
 (
-  tmp_id     int auto_increment
-    primary key,
+  tmp_id     int auto_increment primary key,
   created_at datetime      null,
   file_path  varchar(500)  null,
   data       varchar(5000) not null
@@ -55,11 +54,13 @@ create table tmp
 
 ## WRITE Database 2
 
-The 2nd WRITE should be to GovTech's database that contains the extracted PII data stored in a dictionary. Using this dictionary, we can see what data was extracted for each of the PII types, such as name and address.
+The 2nd WRITE should be to GovTech's database that contains the location to store extracted PII data contained inside a dictionary. Using this dictionary, we can see what data was extracted for each of the PII types, such as name and address.
 
 For example, a typical output here looks like:
 
 `{"name": ["Ang Kian"], "nric": ["S4254566Z"], "email": ["angkian@u.nus.edu"], "phone": [], "address": ["Blk456 Choa Chu Kang Loop S680345"]}`
+
+The variables are [`PII_DB_HOST`, `PII_DB_USER`, `PII_DB_PORT`, `PII_DB_PASSWORD`, `PII_DB_DBNAME`, `PII_DB_TABLENAME`].
 
 This might have the same credentials as the READ database above, but the choice of decoupling is available here. 
 
@@ -68,15 +69,12 @@ The schema for this `PII_DB_TABLENAME` table, which is currently named `pii`:
 ```sh
 create table pii
 (
-  id              int auto_increment
-    primary key,
+  id              int          auto_increment primary key,
   js_documents_id varchar(256) not null,
   individual_id   char(36)     not null,
   pii_json        json         null
 );
 ```
-
-The variables are [`PII_DB_HOST`, `PII_DB_USER`, `PII_DB_PORT`, `PII_DB_PASSWORD`, `PII_DB_DBNAME`, `PII_DB_TABLENAME`].
 
 | Key | Description |
 | --- | --- |
