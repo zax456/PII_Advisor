@@ -32,7 +32,7 @@ app = Flask(__name__)
 def directory_scan():
     # directory = "../data_science/unit_tests/sample_resumes"
     directory = os.getcwd()
-    result = {"directory": "WHAT?"}
+    result = {"directory": directory}
     # result = []
     # try:
     #     for dirName, subdirList, fileList in os.walk(directory):
