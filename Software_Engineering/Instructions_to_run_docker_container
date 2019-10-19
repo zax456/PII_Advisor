@@ -7,6 +7,7 @@
 
 Alternatively...
 6. Run the command: "docker run --rm -p 5000:80 first_docker" to run the image created previously
+7. Run the command: "curl -H "Content-type: application/json" -X POST http://172.17.0.1:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'" to test resume upload
 
 # To restart container
 1. Ctrl + C or Cmd + C in your terminal
