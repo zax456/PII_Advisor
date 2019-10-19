@@ -13,8 +13,10 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 # TEST COMMANDS
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/update/ -d '{"individual_id": "ID_testingV2", "file_name": "kh_resume_pdf1", "is_default": 0}'
-# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":24}'
+# curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":438}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/directory_scan/
+# curl -X GET http://0.0.0.0:5000/directory_scan/
+# curl -H "Content-type: application/json" -X POST http://0.0.0.0:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 
@@ -28,19 +30,20 @@ app = Flask(__name__)
 
 @app.route('/directory_scan/', methods=['GET'])
 def directory_scan():
-    directory = "../data_science/unit_tests/sample_resumes"
-    result = {"Path": os.getcwd()}
-    # try:
-    #     for dirName, subdirList, fileList in os.walk(directory):
-    #         for file in fileList:
-    #             result.append(os.path.join(dirName, file))
-    # except Exception as e:
-    #     tmp = {
-    #         "function": "directory_scan",
-    #         "data": e
-    #         }
-    #     db_function_write._insert_tmp(tmp)
-    #     return
+    # directory = "../data_science/unit_tests/sample_resumes"
+    directory = os.getcwd()
+    result = []
+    try:
+        for dirName, subdirList, fileList in os.walk(directory):
+            for file in fileList:
+                result.append(os.path.join(dirName, file))
+    except Exception as e:
+        tmp = {
+            "function": "directory_scan",
+            "data": e
+            }
+        db_function_write._insert_tmp(tmp)
+        return
 
     return jsonify(result), 201
 
