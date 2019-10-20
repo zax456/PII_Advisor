@@ -132,7 +132,7 @@ def process_resume(filepath=None):
 
     except Exception as e: 
         tmp = {
-            "file_path": path,
+            "file_path": request.json["filepath"] if filepath==None else filepath,
             "data": e
             }
         db_function_write._insert_tmp(tmp)
