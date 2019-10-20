@@ -187,11 +187,11 @@ class db_connection_WRITE:
 
             individual_id = record['individual_id']
             file_path = record['file_path']
-            extracted_on = record['extracted_on']
+            # extracted_on = record['extracted_on']
             pii_json = json.dumps(record['pii_json'])
             
-            print(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
-            cur.execute(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            # print(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'", extracted_on))
+            cur.execute(self.INSERTsql_pii %(os.environ['PII_DB_TABLENAME'], "'" + individual_id + "'", "'" + file_path + "'", "'" + pii_json + "'"))
             
             print("inserted sucessfully into pii table!")
             self._conn.commit()

@@ -94,7 +94,6 @@ def process_resume(filepath=None):
             raw_contents = convert_to_text.convert_to_text(filepath)
 
         PIIs, parsed_contents = process_string.process_string(raw_contents)
-        # result = {"raw":raw_contents, "piis": PIIs, "paresed": parsed_contents}
 
         path = request.json["filepath"] if filepath==None else filepath
         full_filename = path.lower().split('/')[-1] 
@@ -129,7 +128,7 @@ def process_resume(filepath=None):
     
         db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
         
-        return jsonify(task), 201
+        return jsonify(task_pii), 201
 
     except Exception as e: 
         tmp = {
