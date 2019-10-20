@@ -55,17 +55,17 @@ class db_connection_WRITE:
             '''
             cur = self._conn.cursor()
             
-            file_name = record['file_name']
-            file_extension = record['file_extension']
-            file_size = record['file_size']
-            document_category = record['document_category']
-            is_default = record['is_default']
-            file_path = record['file_path']
-            created_by = record['created_by']
-            modified_by = record['modified_by']
-            parsed_content = record.get('parsed_content', "Nothing here")
-            parsed_content_v2 = record['parsed_content_v2']
-            individual_id = record['individual_id']
+            file_name = record.get('file_name', "")
+            file_extension = record.get('file_extension', "")
+            file_size = record.get('file_size', "")
+            document_category = record.get('document_category', "")
+            is_default = record.get('is_default', "")
+            file_path = record.get('file_path', "")
+            created_by = record.get('created_by', "")
+            modified_by = record.get('modified_by', "")
+            parsed_content = record.get('parsed_content', "")
+            parsed_content_v2 = record.get('parsed_content_v2', "")
+            individual_id = record.get('individual_id', "")
 
             cur.execute(self.INSERTsql_main %(os.environ['PROD_SEP_TABLENAME'], 
                                             individual_id, file_name, file_extension, file_size, 
@@ -207,8 +207,8 @@ class db_connection_WRITE:
             '''
             cur = self._conn.cursor()
 
-            file_path = record['file_path']
-            data = record['data']
+            file_path = record.get('file_path', "")
+            data = record.get('data', "")
             
             cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
 
