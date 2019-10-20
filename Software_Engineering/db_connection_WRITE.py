@@ -198,27 +198,28 @@ class db_connection_WRITE:
     # function: insert logging statements into database
     # input: ran during exceptions called during any of the functions in process_string or convert_to_text
     def _insert_tmp(self, record):
-        try:
-            with self._conn:
-                '''
-                insert error logs into tmp table
-                Input:
-                    :record: dictionary consisting of file path (string), error log (string)
-                '''
-                cur = self._conn.cursor()
+        with self._conn:
+            '''
+            insert error logs into tmp table
+            Input:
+                :record: dictionary consisting of file path (string), error log (string)
+            '''
+            cur = self._conn.cursor()
 
-                # file_path = record.get('file_path', " ")
-                # data = record.get('data', " ")
-                file_path = record['file_path']
-                data = str(record['data'])
-                
-                cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
+            # file_path = record.get('file_path', " ")
+            # data = record.get('data', " ")
+            file_path = record['file_path']
+            data = str(record['data'])
+            
+            cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
 
-                print("inserted into tmp sucessfully!")
-                self._conn.commit()
-        except Exception as e:
-            print(e)
-            return e
+            print("inserted into tmp sucessfully!")
+            self._conn.commit()
+        # try:
+            
+        # except Exception as e:
+        #     print(e)
+        #     return e
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
 # db = db_connection_WRITE("Software_Engineering\database_WRITE_config.ini")
