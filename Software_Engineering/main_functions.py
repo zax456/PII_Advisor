@@ -43,7 +43,8 @@ def directory_scan():
         for dirName, subdirList, fileList in os.walk(directory):
             for file in fileList:
                 filepath = os.path.join(dirName, file)
-                process_resume(filepath)
+                # process_resume(filepath)
+                result.append(filepath)
                 
     except Exception as e:
         tmp = {
@@ -53,7 +54,8 @@ def directory_scan():
         db_function_write._insert_tmp(tmp)
         return
 
-    return "\nFinished scanning resume directory", 201
+    # return "\nFinished scanning resume directory", 201
+    return jsonify(result), 201
 
 @app.route('/cron_scan/', methods=['GET'])
 def cron_scan():
