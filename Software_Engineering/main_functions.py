@@ -122,8 +122,7 @@ def process_resume(filepath=None):
         task_pii = {
         "individual_id": individual_id,
         "file_path": path,
-        "pii_json": PIIs,
-        "extracted_on": 'NOW()'
+        "pii_json": PIIs
         }
     
         db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
