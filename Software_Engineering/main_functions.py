@@ -47,7 +47,7 @@ def directory_scan():
                 
     except Exception as e:
         tmp = {
-            "function": "directory_scan",
+            "file_path": "directory_scan function",
             "data": e
             }
         db_function_write._insert_tmp(tmp)
@@ -156,7 +156,7 @@ def update_resume():
         }
     except Exception as e:
         tmp = {
-            "function": "update_resume",
+            "file_path": "update_resume function",
             "data": e
         }
 
