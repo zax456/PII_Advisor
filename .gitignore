@@ -6,6 +6,7 @@
 *.pyc
 
 AKH_Test.py
+/Software_Engineering/sample_resumes
 
 #----------------------------------------------------------------------------
 # EMBER-CLI DEFAULT
