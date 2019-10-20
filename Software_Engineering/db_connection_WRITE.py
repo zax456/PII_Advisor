@@ -217,6 +217,7 @@ class db_connection_WRITE:
                 print("inserted into tmp sucessfully!")
                 self._conn.commit()
         except Exception as e:
+            print(e)
             return e
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
