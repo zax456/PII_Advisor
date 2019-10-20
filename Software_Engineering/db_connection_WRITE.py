@@ -211,7 +211,7 @@ class db_connection_WRITE:
             file_path = record['file_path']
             data = record['data']
             
-            cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
+            cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], "'"+file_path+"'", data))
 
             print("inserted into tmp sucessfully!")
             self._conn.commit()
