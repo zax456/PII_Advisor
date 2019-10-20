@@ -12,6 +12,7 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
 # TEST COMMANDS
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
+# curl -H "Content-type: application/json" -X POST http://0.0.0.0:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 # curl -H "Content-type: application/json" -X POST http://192.168.99.100:5000/update/ -d '{"individual_id": "ID_testingV2", "file_name": "kh_resume_pdf1", "is_default": 0}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/cron_scan/ -d '{"time_duration":438}'
 # curl -H "Content-type: application/json" -X GET http://192.168.99.100:5000/directory_scan/
@@ -130,7 +131,7 @@ def process_resume(filepath=None):
 
     except Exception as e: 
         tmp = {
-            "file_path": request.json["filepath"] if filepath==None else filepath,
+            "file_path": path,
             "data": e
             }
         db_function_write._insert_tmp(tmp)
