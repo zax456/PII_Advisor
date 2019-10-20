@@ -71,7 +71,7 @@ def flagging(raw_text):
     except Exception as e: 
         tmp = {
         "file_path": "flagging function",
-        "data": str(e)
+        "data": e
         }
         db_function_write._insert_tmp(tmp)
         return
