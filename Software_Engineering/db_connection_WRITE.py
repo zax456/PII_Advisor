@@ -210,6 +210,7 @@ class db_connection_WRITE:
             file_path = record.get('file_path', "")
             data = record.get('data', "")
             
+            print( self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data) )
             cur.execute(self.INSERTsql_tmp %(os.environ['PROD_SEP_TABLENAME_2'], file_path, data))
 
             print("inserted into tmp sucessfully!")
