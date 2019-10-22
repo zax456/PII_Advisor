@@ -215,11 +215,6 @@ class db_connection_WRITE:
 
             print("inserted into tmp sucessfully!")
             self._conn.commit()
-        # try:
-            
-        # except Exception as e:
-        #     print(e)
-        #     return e
 
 ### ---------------------------------------------------------------------------------------------------------------------------------------
 # db = db_connection_WRITE("Software_Engineering\database_WRITE_config.ini")
