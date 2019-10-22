@@ -4,4 +4,7 @@ build:
 	docker build -t $(IMAGE_URL):latest .
 
 run:
-	docker run --rm -p 5000:80 $(IMAGE_URL):latest
+	docker run -it --rm \
+		--publish 5000:80 \
+		--volume $$(pwd)/data:/dst \
+		$(IMAGE_URL):latest
