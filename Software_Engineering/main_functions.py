@@ -36,7 +36,7 @@ def test_fn():
 
 @app.route('/directory_scan/', methods=['GET'])
 def directory_scan():
-    directory = "sample_resumes/"
+    directory = "sample_resumes/" # Need to put this as an Environment Variable
     
     result = []
     try:
