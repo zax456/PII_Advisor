@@ -6,38 +6,73 @@ import dash_html_components as html
 import data_processing as dp
 import plotly.graph_objs as go
 
+# CSS 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 chart1_df = dp.gen_chart_1()
 colors = list(np.random.choice(range(256), size=chart1_df.shape[0]))
-colors = list(np.random.choice(range(256), size=3))
+trace1 = {
+    'labels': chart1_df["Industry"].values.tolist(),
+    'values': chart1_df["Percentage"].values.tolist(),
+    'marker': colors,
+    'type': 'pie'
+}
+layout1 = {
+    "title":'Population distribution across each industry'
+}
 
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/2014_ebola.csv')
-df = df.dropna(axis=0)
+chart4_df = dp.gen_chart_4(["Business", "Engineering", "Finance"]).T
+trace2 = {
+    'x': chart4_df["Business"].values.tolist(),
+    'y': chart4_df.index.values.tolist(),
+    'type': 'bar',
+    'orientation':'h'
+}
+layout2 = {
+    "title":'Movement of people moving across to other industries',
+    'yaxis_tickangle': -45,
+    'hovermode':'closest',
+    'barmode': 'group'
+}
 
-layout = html.Div([
-    html.Div([html.H1("Ebola Cases Reported in Africa - 2014")], style={"textAlign": "center"}),
-    dcc.Graph(id="my-graph"),
-    html.Div([dcc.Slider(id='month-selected', min=3, max=12, value=8,
-                         marks={3: "March", 4: "April", 5: "May", 6: "June", 7: "July", 8: "August", 9: "September",
-                                10: "October", 11: "November", 12: "December"})],
-             style={'textAlign': "center", "margin": "30px", "padding": "10px", "width": "65%", "margin-left": "auto",
-                    "margin-right": "auto"}),
-], className="container")
+# ----------------------------------------------------------------------------------------
+"""
+package all components into a dictionary
 
+:keys: data, layout
+:values: chart specs in dict format, 
+         figure layout in dict format
+"""
+pie_1_fig = {'data':[trace1], 'layout':layout1}
+data2 = [{
+    'x': chart4_df[industry].values.tolist(),
+    'y': chart4_df.index.values.tolist(),
+    'type': 'bar',
+    'name': industry,
+    'orientation':'h'} for industry in chart4_df.columns]
+stacked_bar_4_fig = {'data':data2, 'layout':layout2}
 
-@app.callback(
-    dash.dependencies.Output("my-graph", "figure"),
-    [dash.dependencies.Input("month-selected", "value")]
-)
-def update_graph():
-    return {
-        "data": [go.Pie(labels=df["Country"].unique().tolist(), values=df[df["Month"] == selected]["Value"].tolist(),
-                        marker={'colors': ['#EF963B', '#C93277', '#349600', '#EF533B', '#57D4F1']}, textinfo='label')],
-        "layout": go.Layout(title=f"Cases Reported Monthly", margin={"l": 300, "r": 300, },
-                            legend={"x": 1, "y": 0.7})}
+# ----------------------------------------------------------------------------------------
+app = dash.Dash(external_stylesheets=external_stylesheets)
+app.config.suppress_callback_exceptions = True
+
+app.layout = html.Div(children=[
+    html.H1(children='Workforce Health Analytics Dashboard', style={'textAlign': 'center'}),
+    html.Div([
+        html.Div([
+            dcc.Graph(
+                id='pie1',
+                figure=pie_1_fig
+                )
+            ], className="six columns"),
+            html.Div([
+                dcc.Graph(
+                    id='stacked_bar4',
+                    figure=stacked_bar_4_fig
+                    )
+                ], className="six columns")
+            ], className="row")
+])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
