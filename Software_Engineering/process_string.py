@@ -53,13 +53,14 @@ def flagging(raw_text):
         nric = re.findall('(?i)[SFTG]\d{7}[A-Z]', raw_text)
         email_address = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", raw_text)
         phone_number = [phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164) for match in phonenumbers.PhoneNumberMatcher(raw_text, "SG")] 
+        processed_text = re.sub('(?i)[SFTG]\d{7}[A-Z]', '<pii_nric>', raw_text) #remove NRIC
         search_physical_address = re.search('([A-Za-z]{2,6}[\s]?|)[\d]{1,4}' + # block/street number (e.g. Blk 123, Street 52, 133, St 55)
                                             '[\s]?' +
                                             '[A-Za-z]{,2}' + # block suffix (e.g. the 'A' in Block 60A)
                                             '[\s]' +
                                             '[\D]{5,}.+' + # road/street name (e.g. Kent Ridge Drive)
                                             '[Ss][A-Za-z]{,8}[\s]?[\d]{6}' # postal code (e.g. S123456, Singapore 123456)
-                                            , raw_text)
+                                            , processed_text)
         physical_address = search_physical_address.group() if search_physical_address is not None else ''
         name = process_name(raw_text).strip() if type(raw_text) == str else ''
         return {'nric':nric,
