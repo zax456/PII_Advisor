@@ -10,7 +10,7 @@ df = pd.read_csv("Dashboard\Annotated_Resumes.csv")
 
 ## Cleaning start and end dates
 df["start_date_new"] = df["start_date"].apply(lambda x: "present" if np.isnan(x) else str(int(x)).lower().strip() )
-df["end_date"] = df["end_date"].apply(lambda x: str(x).lower().strip())
+df["end_date"] = df["end_date"].apply(lambda x: str(x).lower().strip() if type(x) == str else "present")
 
 def change_dates(df, column):
     if df[column].isnumeric() == True:
@@ -25,6 +25,8 @@ df['start_date_new']=df.apply(change_dates, axis=1, args=("start_date_new",))
 
 # drop old dates since its not required
 df = df.drop(["start_date", "end_date"], axis=1)
+
+# -----------------------------------------------------------------------------------------------------------------------------------
 
 """
 Pie chart 1~
@@ -51,6 +53,9 @@ def gen_chart_1():
 
     ## Final chart 1 dataframe
     return chart1_df
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------
 
 """
 Bar Chart 4~
@@ -111,5 +116,30 @@ def gen_chart_4(current_industry):
     chart4_df = pd.DataFrame(counts)
     chart4_df.fillna(value = 0, inplace = True)
 
-    return chart4_df
+    return chart4_df.T
 
+# -----------------------------------------------------------------------------------------------------------------------------------
+
+"""
+Donut chart 2~
+Category: Years of exp
+Value: % of ppl with those years of exp
+
+1. To get years of experience for each resume 
+    a) group the dataframe by the resume id, sort the group by start date in ascending order
+    b) take the end date of the 1st record - start date of the last record in the group to get years of experience
+2. Create a dataframe with unique resume id and store their respective years of experience
+"""
+def count_experience(group):
+    group = group.sort_values(by="start_date_new", ascending=False)
+    num_experience_years = group.iloc[0, 5].year - group.iloc[-1, 4].year # end date of latest job - start date of 1st job
+    return num_experience_years
+
+def gen_chart_2():
+    years_of_exp = pd.DataFrame(df.groupby("resume").apply(lambda x: count_experience(x)), columns=["Years"])
+    total = years_of_exp.shape[0]
+    years_of_exp = years_of_exp.groupby("Years").agg(
+        percentage = pd.NamedAgg(column="Years", aggfunc=lambda x: round(x.value_counts()/total*100, 2))
+        )
+    
+    return years_of_exp
