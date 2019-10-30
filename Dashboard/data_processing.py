@@ -8,6 +8,20 @@ import dash_html_components as html
 
 df = pd.read_csv("Dashboard\Annotated_Resumes.csv")
 
+def get_df():
+    return df
+
+def get_top_n(n=10):
+    """
+    helper function to get the top n industry (most frequently appearing in all resumes)
+    Input:
+        :nil
+    Output:
+        list of strings of the top 10 industries
+    """
+    top_industries = df["industry"].value_counts().nlargest(n).index.tolist()
+    return top_industries
+
 ## Cleaning start and end dates
 df["start_date_new"] = df["start_date"].apply(lambda x: "present" if np.isnan(x) else str(int(x)).lower().strip() )
 df["end_date"] = df["end_date"].apply(lambda x: str(x).lower().strip() if type(x) == str else "present")
@@ -59,12 +73,12 @@ def gen_chart_1():
 
 """
 Bar Chart 4~
-Takes in multiple industry and checks for each industry and for each person, what industry was the person in his/her previous job prior to his current industry
-If the previous industry is the same as current industry, don't count it
+Takes in multiple industry and checks for each industry and for each person, what industry was the person in their previous jobs prior to his current industry
+If the previous industry is the same as selected industry, don't count it. 
 Normalise count by total people in that selected industry
 
 Table schema:
-Previous Industry | current_industry_1 | current_industry_2 | current_industry_N-1
+Selected Industry | previous_industry_1 | previous_industry_2 | previous_industry_N-1
 ----------------------------------------------------------------
     Finance       |     20%             |          20%        |     (N-1)%
    Engineering    |     10%             |          30%        |     (N-1)%
@@ -72,7 +86,8 @@ Previous Industry | current_industry_1 | current_industry_2 | current_industry_N
         .
         .
 """
-def gen_chart_4(current_industry):
+def gen_chart_4(current_industry=None):
+
     # sort df according to descending start date
     df_sorted_date = df.sort_values("start_date_new", ascending=False)
 
@@ -82,36 +97,40 @@ def gen_chart_4(current_industry):
     df_groups = df_sorted_date.groupby("resume") # group records by resume id
 
     for name, group in df_groups:
+        resume_curr_industry = group["industry"].iloc[0]
         for i in range(group.shape[0]):
-            if i == 0: df_current_job = df_current_job.append(group.iloc[i, :])
-            elif i == 1: df_previous_job = df_previous_job.append(group.iloc[i, :])
-            else: break
+            if i == 0: 
+                df_current_job = df_current_job.append(group.iloc[i, :])
+
+            elif ( (df_previous_job["resume"].isin([name]).any() == False) and 
+                  (group["industry"].iloc[i] != resume_curr_industry)): # if the person has a previous job that is of a different industry and is not in recorded yet
+                df_previous_job = df_previous_job.append(group.iloc[i, :])
+                break
 
     df_current_job.reset_index(inplace=True, drop=True)
     df_previous_job.reset_index(inplace=True, drop=True)
 
+    # use defaultdict to auto create new keys in dict
     counts = defaultdict(lambda: defaultdict(int)) # {Eng:{Healthcare: 2}, Business:{Army: 10}, Tech:{Finance: 5}}
     for curr_industry in current_industry:
         # ppl's whose latest job is in current industry
         ppl_in_curr_industry = df_current_job.loc[df_current_job["industry"] == curr_industry, "resume"].values.tolist()
         # keep those that has a previous job b4
-        ppl_in_curr_industry = [ppl for ppl in ppl_in_curr_industry if ppl in df_previous_job["resume"]] 
+        ppl_in_curr_industry = [ppl for ppl in ppl_in_curr_industry if df_previous_job["resume"].isin([ppl]).any()] 
 
         # counts of people whose job is in selected industry
         total_ppl = df_current_job[ (df_current_job["industry"] == curr_industry) & (df_current_job["resume"].isin(ppl_in_curr_industry))].count().values[0] 
         for idx in ppl_in_curr_industry:
             # get previous industry counts for those in the selected industry
-            prev_industry = df_previous_job.loc[df_previous_job["resume"] == idx, "industry"].values[0]
+            prev_industry = df_previous_job.loc[df_previous_job["resume"] == idx, "industry"].values[0] # TODO Debug this
             counts[curr_industry][prev_industry] += 1
 
         
         # normalisation step - total previous / total current
-        # print(curr_industry, total_ppl)
         for previous_industry in counts[curr_industry].keys():
             counts[curr_industry][previous_industry] /= total_ppl
             counts[curr_industry][previous_industry] = round(counts[curr_industry][previous_industry], 2)
 
-    # TODO
     # after getting all selected industries previous percent, put them into a dataframe
     chart4_df = pd.DataFrame(counts)
     chart4_df.fillna(value = 0, inplace = True)
