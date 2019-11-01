@@ -11,10 +11,10 @@ skills_single_word = [skill for skill in skills if len(skill.split(' ')) == 1]
 
 ddir = '../../../../data/resumes/batch1' # path to resumes
 for resume_num in [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]:
-    with open(f'{ddir}/resume number {resume_num}.txt') as f:
+    with open(f'{ddir}/resume number {resume_num}.txt', 'rb') as f:
         resume_text = f.readlines()
 
-    resume_text = [line.lower() for line in resume_text]
+    resume_text = [line.decode('utf8').lower() for line in resume_text]
 
     identified_skills = set()
 
