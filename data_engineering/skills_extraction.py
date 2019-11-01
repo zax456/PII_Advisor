@@ -35,6 +35,5 @@ for resume_num in [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 1
             identified_skills.add(skill)
 
     # output results
-    ddir = '.' # output folder
-    with open(f'{ddir}/extracted_skills_by_resume.csv', 'a') as f: # append to the file since this is a for loop
+    with open('./extracted_skills_by_resume.csv', 'a') as f: # append to the file since this is a for loop
         f.write(f'{resume_num},{",".join(identified_skills)}')
