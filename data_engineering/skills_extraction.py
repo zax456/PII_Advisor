@@ -2,10 +2,10 @@ import re
 
 ddir = '.' # working dir
 
-with open(f'{ddir}/skills.txt', encoding='utf-16') as f:
+with open(f'{ddir}/skills.txt', 'rb') as f:
     skills = f.readlines()
 
-skills = [skill.strip().lower() for skill in skills]
+skills = [skill.decode('utf8').strip().lower() for skill in skills]
 skills_multi_word = [skill for skill in skills if len(skill.split(' ')) > 1]
 skills_single_word = [skill for skill in skills if len(skill.split(' ')) == 1]
 
