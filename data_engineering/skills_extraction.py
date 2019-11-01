@@ -36,4 +36,4 @@ for resume_num in [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 1
 
     # output results
     with open('./extracted_skills_by_resume.csv', 'a') as f: # append to the file since this is a for loop
-        f.write(f'{resume_num},{",".join(identified_skills)}')
+        f.write(f'{resume_num},{",".join(identified_skills)}\n')
