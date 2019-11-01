@@ -14,7 +14,7 @@ for resume_num in [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 1
     with open(f'{ddir}/resume number {resume_num}.txt', 'rb') as f:
         resume_text = f.readlines()
 
-    resume_text = [line.decode('utf8').lower() for line in resume_text]
+    resume_text = [line.decode('utf8').strip().lower() for line in resume_text]
 
     identified_skills = set()
 
