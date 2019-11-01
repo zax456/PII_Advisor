@@ -127,7 +127,9 @@ app.layout = html.Div(children=[
                 figure=stacked_bar_4_fig
                 )
                 ], className="seven columns")
+                
     ], className="row")
+
 ], className="container")
 
 if __name__ == '__main__':

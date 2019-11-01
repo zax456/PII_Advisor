@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import random
 from collections import defaultdict, Counter
 import datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -11,6 +12,15 @@ df = pd.read_csv("Dashboard/Annotated_Resumes.csv")
 
 def get_df():
     return df
+
+def color_generator(n, interval=None):
+    result = []
+    for i in range(n):
+        random_number = random.randint(0,16777215)
+        hex_number = str(hex(random_number))
+        hex_number ='#'+ hex_number[2:]
+        result.append(hex_number)
+    return result
 
 def get_top_n(n=10):
     """
@@ -299,4 +309,5 @@ def gen_chart_7(industries=None):
     chart_7_df = pd.DataFrame(chart_7_df)
     chart_7_df.fillna(0, inplace=True)
     # print([chart_7_df.loc[:, chart_7_df.columns.values].sum()])
-    return chart_7_df
+    chart_7_df.index.name = 'avg_duration'
+    return chart_7_df.sort_index()
