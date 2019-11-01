@@ -1,8 +1,6 @@
 import re
 
-ddir = '.' # working dir
-
-with open(f'{ddir}/skills.txt', 'rb') as f:
+with open('./skills.txt', 'rb') as f:
     skills = f.readlines()
 
 skills = [skill.decode('utf8').strip().lower() for skill in skills]
