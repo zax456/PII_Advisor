@@ -7,8 +7,8 @@ skills = [skill.decode('utf8').strip().lower() for skill in skills]
 skills_multi_word = [skill for skill in skills if len(skill.split(' ')) > 1]
 skills_single_word = [skill for skill in skills if len(skill.split(' ')) == 1]
 
-ddir = '../../../../data/resumes/batch1' # path to resumes
-for resume_num in [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]:
+ddir = '../../../../data/resumes/batch4' # path to resumes
+for resume_num in [1524, 1522, 1521, 1520, 1519, 1518, 1517, 1516, 1515, 1514, 1513, 1512, 1511, 1510, 1509, 1508, 1506, 1505, 1504, 1503, 1502, 1501, 1500, 1499, 1498, 1497, 1496, 1495, 1494, 1492]:
     with open(f'{ddir}/resume number {resume_num}.txt', encoding='utf8' , errors='ignore') as f:
         resume_text = f.readlines()
 
