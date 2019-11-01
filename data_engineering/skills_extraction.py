@@ -2,7 +2,7 @@ import re
 
 ddir = '.' # working dir
 
-with open(f'{ddir}/skills.txt', 'rb') as f:
+with open(f'{ddir}/skills.txt', 'r') as f:
     skills = f.readlines()
 
 skills = [skill.strip().lower() for skill in skills]
