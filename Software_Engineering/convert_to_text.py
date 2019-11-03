@@ -13,17 +13,28 @@ from io import StringIO
 
 #remaining to test: doc, txt
 
-def convert_to_text(filepath):
-    if filepath[-3:]=='pdf':
-        return getPDFcontent(filepath)
-    if filepath[-3:]=='odt':
-        return getODTContent(filepath)
-    if filepath[-3:]=='doc':
-        return getDOCcontent(filepath)
-    if filepath[-3:]=='txt':
-        return getTXTcontent(filepath)
-    if filepath[-4:]=='docx':
-        return getDocxContent(filepath)
+def convert_to_text(filename, file_extension):
+    """
+    file_extension e.g. "doc", "pdf", "odt", "odtx", "txt"
+    filename e.g. kh_resume, without any file extension
+    """
+    try:
+        
+        filepath = filename + "." + file_extension
+        if file_extension=='pdf':
+            return getPDFcontent(filepath)
+        elif file_extension=='odt':
+            return getODTContent(filepath)
+        elif file_extension=='doc':
+            return getDOCcontent(filepath)
+        elif file_extension=='txt':
+            return getTXTcontent(filepath)
+        elif file_extension=='docx':
+            return getDocxContent(filepath)
+        else:
+            print("Please Verify that file extension is PDF, Doc, Docx, odt, txt")
+    except:
+        return "Verify file_name does not contain file_extension information"
 
 
 def getDOCcontent(filepath):    #couldnt find a way for Windows so i converted the file, but for mac there is antiword/textract     
