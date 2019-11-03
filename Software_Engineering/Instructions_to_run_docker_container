@@ -3,15 +3,17 @@
 3. Start Docker Quickstart Terminal
 4. Change working directory to folder which was downloaded previously in the terminal
 5. Run the command: "docker build -t first_docker ."
+6. Run the command: "docker-compose up" to run image with volume mounted to the container
+
+Alternatively...
 6. Run the command: "docker run --rm -p 5000:80 first_docker" to run the image created previously
 7. Run the command: "curl -H "Content-type: application/json" -X POST http://172.17.0.1:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'" to test resume upload
 
 # To restart container
 1. Ctrl + C or Cmd + C in your terminal
-2. Run the command "docker kill $(docker ps -q)"
+2. Run the command "docker kill $(docker ps -q)" to stop all containers
 3. Run the command "docker build -t first_docker ." to rebuild the image if there are any changes 
 4. Run the command "docker run --rm -p 5000:80 first_docker" to run the image again
-5. Run the command "docker kill $(docker ps -q)" to stop all containers
 
 #########################################################################
 
@@ -27,5 +29,8 @@ This can allow you to better visualise the file paths.
 If you would like to see how `dst` could be created, run this:
 docker run -it -v "$(pwd)":/dst debian bash
 This command appends your current directory into the `dst` directory in Docker
+
+To check if files have been mounted into docker after docker-compose up -d
+Run "docker-compose exec web bash"
 
 * Joseph recommends putting all our commands into a `docker-compose.yml` to automate them eventually.

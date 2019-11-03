@@ -129,7 +129,7 @@ def process_name(raw_text):
       Name of string type
       """
     try:
-        nlp = spacy.load("model_building/model")
+        nlp = spacy.load("./model_building/model")
         doc = nlp(raw_text)
         for ent in doc.ents:  
             if ent.label_ == "NAME":
