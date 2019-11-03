@@ -18,11 +18,8 @@ class db_connection_READ:
                                         db = os.environ['PROD_DBNAME']
                                         )
 
-        ## SQL statements
-        # self.SELECTsql = self._config.get('sql_queries', 'select') %(self._config.get('rds_database', 'tablename'), 
-        #                                                             self._config.getint('rds_database', 'time_interval'))
-
         self.SELECTsql = self._config.get('sql_queries', 'select') %(os.environ['PROD_TABLENAME'])
+        self.SELECTfile_name_extension = self._config.get('sql_queries', 'jobseeker_documents_id') 
 
 
     # function: get all records from jobseekers document table within specific time frame (24 hours)
@@ -34,6 +31,15 @@ class db_connection_READ:
             rows = cur.fetchall()
         return rows
 
-### ---------------------------------------------------------------------------------------------------------------------------------------
-# db = db_connection()
-# pprint(db.select_test())
+    def select_id(self, record):
+        with self._conn:
+            cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
+            print(self.SELECTfile_name_extension)
+            cur.execute(self.SELECTfile_name_extension %(os.environ['PROD_TABLENAME'], int(record)))
+            #cur.execute(self.SELECTfile_name_extension %(record))
+
+            rows = cur.fetchall()
+        return rows
+
+        #cur.execute(self.SELECTsql_main %(self._config.get('production_separate_db', 'tablename'), hours))
+        #cur.execute(self.SELECTsql_main %(self._config.get('production_separate_db', 'tablename'), hours))

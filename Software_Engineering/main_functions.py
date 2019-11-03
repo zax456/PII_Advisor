@@ -22,17 +22,7 @@ db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 # curl -H "Content-type: application/json" -X POST http://0.0.0.0:5000/upload/ -d '{"filepath":"kh_resume_pdf1.pdf"}'
 # docker run -p 5000:80 -v path/to/resumes:path/to/dockerapp image_name
 
-
-## Note list
-# users may re-upload their resumes. This generates a new job ID everytime they upload a new resume. 
-# How do we link the job ID and the new resume with the same user? 
-# Have a column 'user id' that contains each unique user id?
-
 app = Flask(__name__)
-
-@app.route('/', methods=['GET'])
-def test_fn():
-    return "\nThis is a test function!"
 
 @app.route('/directory_scan/', methods=['GET'])
 def directory_scan():
@@ -44,7 +34,6 @@ def directory_scan():
             for file in fileList:
                 filepath = os.path.join(dirName, file)
                 process_resume(filepath)
-                # result.append(filepath)
                 
     except Exception as e:
         tmp = {
@@ -62,6 +51,7 @@ def cron_scan():
     try:
         hour = request.json["time_duration"]
         results = db_function_write.select_pii(hour)
+        return jsonify(results), 201
         
     except Exception as e:
         tmp = {
@@ -71,48 +61,38 @@ def cron_scan():
         db_function_write._insert_tmp(tmp)
         return
 
-    return jsonify(results), 201
-
-@app.route('/upload/', methods=['POST', 'GET'])
-def process_resume(filepath=None):
+@app.route('/upload/<jobseeker_document_id>', methods=['POST', 'GET'])
+def process_resume(jobseeker_document_id):
     """
-    This function sends the uploaded resume to our scanning and masking functions 
-    which will flag out PIIs and mask them inside the resume. They will return both the flagged PIIs or masked contents back. 
-    After which, it will generate a job id and store the contents inside the database
-    
+    This function sends the uploaded resume to our scanning and masking functions which will flag out 
+    PIIs and mask them inside the resume. They will return both the flagged PIIs or masked contents back. 
+    After which, it will generate a job id and store the contents inside the database.
     Input: 
-        :filepath: location where resume is stored in
+        :jobseeker_document_id: id of the resume document
     
     Output: 
-        flagged PIIs, filtered contents, job id in JSON format
+        flagged PIIs, filtered contents, job id in JSON format, plus insertions into 2 separate databases
     """
     try:
-        raw_contents = ""
-        if filepath == None:
-            raw_contents = convert_to_text.convert_to_text(request.json["filepath"])
-        else:
-            raw_contents = convert_to_text.convert_to_text(filepath)
+        #since input is primary key, we expect only 1 row returned
+        result = db_function_read.select_id(jobseeker_document_id) 
 
+        filename, extension = result[0][0], result[0][1]
+        raw_contents = convert_to_text.convert_to_text(filename, extension)
         PIIs, parsed_contents = process_string.process_string(raw_contents)
 
-        path = request.json["filepath"] if filepath==None else filepath
-        full_filename = path.lower().split('/')[-1] 
-        filename = full_filename.split('.')[0]
-        file_extension = re.findall(r'\.(\w+)', full_filename)[-1]
-        individual_id = "ID_testingV2"
-        # individual_id = get_user_id() # TODO Need to ask Joseph how to get individual ID...Implement later
-
+        # in task, many strings are arbitrary fields which may be customised, the key insertion is "parsed_content_v2"
         task = {
-            "individual_id": individual_id,
+            "individual_id": 'admin', 
             "file_name": filename,
-            "file_extension": file_extension,
-            "file_size": os.path.getsize(path) >> 10, #how to get file size?
-            "document_category": "Secret",
+            "file_extension": extension,
+            "file_size": float(3),
+            "document_category": 'restricted',
             "is_default": 1,
-            "file_path": path,
-            "created_by": individual_id,
+            "file_path": '/',
+            "created_by": 'admin_name',
             "created_on": dt.datetime.now(),
-            "modified_by": individual_id,
+            "modified_by": 'admin_name_2',
             "modified_on": dt.datetime.now(),
             "parsed_content_v2": parsed_contents,
             }
@@ -120,49 +100,21 @@ def process_resume(filepath=None):
         db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
 
         task_pii = {
-        "individual_id": individual_id,
-        "file_path": path,
-        "pii_json": PIIs
+            "individual_id": 'admin',
+            "file_path": '/',
+            "pii_json": PIIs
         }
-    
         db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
-        
-        return jsonify(task_pii), 201
+        return str('Success. Parsed contents and PIIs inserted into 2 tables.'), 200
 
     except Exception as e: 
+        # logging error in temporary database
         tmp = {
-            "file_path": request.json["filepath"] if filepath==None else filepath,
+            "file_path": '/',
             "data": e
-            }
+                }
         db_function_write._insert_tmp(tmp)
-        return
-
-@app.route('/update/', methods=['POST'])
-def update_resume():
-
-    try:
-        data = request.get_json()
-        is_default = data.get('is_default', 0)
-        is_delete = data.get('is_delete', 0)
-        filename = data.get('file_name', 0)
-        individual_id = data.get('individual_id', "No Name")
-        # individual_id = get_user_id() # TODO Need to ask Joseph how to get individual ID...Implement later
-
-        task = {
-            "individual_id": individual_id,
-            "is_default": is_default,
-            "is_delete": is_delete,
-            "file_name": filename
-        }
-    except Exception as e:
-        tmp = {
-            "file_path": "update_resume function",
-            "data": e
-        }
-
-    result = db_function_write._update_main(task)
-
-    return result, 201
+        return str(e), 500
 
 # Return error 404 in JSON format
 @app.errorhandler(404)
