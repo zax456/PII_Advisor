@@ -2,10 +2,12 @@ from flask import Flask, request, jsonify, abort, make_response, json
 import pymysql, sys
 import datetime as dt
 import re
+import os
 from db_connection_READ import db_connection_READ
 from db_connection_WRITE import db_connection_WRITE
 import convert_to_text
 import process_string
+import config
 db_function_read = db_connection_READ("database_READ_config.ini")
 db_function_write = db_connection_WRITE("database_WRITE_config.ini")
 
@@ -39,6 +41,43 @@ def cron_scan():
         return
 
     return jsonify(results), 201
+
+@app.route('/parsed_content/<file_ext>/<file_path>', methods=['GET'])
+def get_parsed_content(file_ext, file_path):
+    """
+    Function:
+        Responds with a JSON structure containing 2 keys:
+        1. "content"
+        2. "piis"
+
+        The "content" key contains the parsed content while the "piis" key
+        contains the mapped PIIs
+
+        Call this function to retrieve the parsed content of a pre-existing file
+        that the service has access to
+
+    Example:
+        curl -H "Content-Type: application/json" "http://localhost:5000/parsed_content/pdf/0001.pdf"
+    """
+    absolute_path_to_file = os.path.join(config.data_directory, file_path)
+    try:
+        raw_content = convert_to_text.convert_to_text_with_ext(absolute_path_to_file, file_ext)
+    except Exception as exception:
+        response = {
+            "error": exception.message,
+            "params": {
+                "file_ext": file_ext,
+                "file_path": file_path
+            }
+        }
+        return jsonify(response), 201
+    else:
+        piis, parsed_content = process_string.process_string(raw_content)
+        response = {
+            "content": parsed_content.encode('ascii',errors='ignore'),
+            "piis": piis,
+        }
+        return jsonify(response), 201
 
 # This function sends the uploaded resume to our scanning and masking functions 
 # which will flag out PIIs and mask them inside the resume
@@ -74,6 +113,7 @@ def process_resume():
             "parsed_content_v2": parsed_contents,
             }
 
+        # commenting the below line returns the result to the client * might be useful for a quick win
         db_function_write._insert_main(task) # call insert function to insert/update parsed resume into database
 
         task_pii = {
@@ -83,6 +123,7 @@ def process_resume():
         "extracted_on": 'NOW()'
         }
     
+        # commenting the below line returns the result to the client * might be useful for a quick win
         db_function_write.insert_pii(task_pii) # call insert function to insert extracted PIIs into database
         
         return jsonify(task), 201
