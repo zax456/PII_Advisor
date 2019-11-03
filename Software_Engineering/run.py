@@ -1,3 +1,5 @@
+import os
 from main_functions import app
+import config
 
-app.run(host='0.0.0.0', port=80, debug=True)
+app.run(host=config.address, port=int(config.port), debug=not config.production)

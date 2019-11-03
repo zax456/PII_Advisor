@@ -1,33 +1,18 @@
-FROM python:3-onbuild
-
-ENV PROD_HOST=bt3101-govtech.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com
-ENV PROD_USER=admin
-ENV PROD_PORT=3306
-ENV PROD_PASSWORD=capstone123!
-ENV PROD_DBNAME=govtech_external
-ENV PROD_TABLENAME=jobseeker_documents
-
-ENV PROD_SEP_HOST=bt3101-govtech.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com
-ENV PROD_SEP_USER=admin
-ENV PROD_SEP_PORT=3306
-ENV PROD_SEP_PASSWORD=capstone123!
-ENV PROD_SEP_DBNAME=govtech_external
-ENV PROD_SEP_TABLENAME=jobseeker_documents_2
-ENV PROD_SEP_TABLENAME_2=tmp
-
-ENV PII_DB_HOST=bt3101-govtech.cu5hwpemnxbf.ap-southeast-1.rds.amazonaws.com
-ENV PII_DB_USER=admin
-ENV PII_DB_PORT=3306
-ENV PII_DB_PASSWORD=capstone123!
-ENV PII_DB_DBNAME=govtech_external
-ENV PII_DB_TABLENAME=pii
-
-COPY convert_to_text.py convert_to_text.py
-COPY process_string.py process_string.py
-COPY db_connection_READ.py db_connection_READ.py
-COPY db_connection_WRITE.py db_connection_WRITE.py
-
-EXPOSE 5000
-
-# ENTRYPOINT python run.py
-CMD [ "python", "run.py" ]
+FROM python:3-alpine
+RUN apk update --no-cache
+RUN apk upgrade --no-cache
+ENV PRODUCTION=true
+WORKDIR /app
+# do the dependencies first since these take awhile to complete and
+# don't change as often - utilise the docker build cache (:
+COPY requirements.txt /app
+RUN pip install --upgrade pip
+RUN apk add --no-cache openblas subversion lapack build-base \
+  && pip install -r requirements.txt \
+  && apk del --no-cache openblas subversion lapack build-base
+RUN apk add --no-cache libstdc++
+# then copy in the rest of the code to execute
+COPY . /app/
+EXPOSE 8080
+CMD [ "python", "/app/run.py" ]
+ENV PYTHONUNBUFFERED 1
