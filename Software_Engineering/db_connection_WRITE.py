@@ -173,7 +173,7 @@ class db_connection_WRITE:
             file_path = str(record['file_path']).strip()
             data = str(record['data']).strip()
             
-            cur.execute(self.INSERTsql_tmp %(config.write_db_table_tmp, file_path, data))
+            cur.execute(self.INSERTsql_tmp %(config.write_db_table_tmp, "'" + file_path + "'", "'" + data + "'"))
 
             print("inserted into tmp sucessfully!")
             self._conn.commit()

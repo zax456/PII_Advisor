@@ -43,10 +43,8 @@ class db_connection_READ:
     def select_id(self, record):
         with self._conn:
             cur = self._conn.cursor() # The cursor is used to traverse the records from the result set.
-            print(self.SELECTfile_name_extension)
+            print(self.SELECTfile_name_extension %(os.environ['PROD_TABLENAME'], int(record)))
             cur.execute(self.SELECTfile_name_extension %(os.environ['PROD_TABLENAME'], int(record)))
-            #cur.execute(self.SELECTfile_name_extension %(record))
-
             rows = cur.fetchall()
         return rows
 

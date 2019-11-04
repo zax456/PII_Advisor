@@ -68,12 +68,16 @@ def cron_scan():
 # after which, it will generate a job id and store the contents inside the database
 # input: operation to be applied on Resume
 # output: flagged PIIs, filtered contents, operation type, job id in JSON format
-@app.route('/upload/', methods=['POST', 'GET'])
-def process_resume():
+@app.route('/upload/<jobseeker_document_id>', methods=['POST', 'GET'])
+def process_resume(jobseeker_document_id):
     try:
+        # TONY testing
+        #TEST = db_function_read._select()
+        #print(f'TEST: {TEST}')
+        
         #since input is primary key, we expect only 1 row returned
         result = db_function_read.select_id(jobseeker_document_id) 
-
+        print(f'result: {result}')
         filename, extension = result[0][0], result[0][1]
         raw_contents = convert_to_text.convert_to_text(filename, extension)
         PIIs, parsed_contents = process_string.process_string(raw_contents)
