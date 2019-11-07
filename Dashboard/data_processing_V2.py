@@ -2,33 +2,26 @@
 import pandas as pd
 import numpy as np
 import random
-from colour import Color
+import math
+import colorsys
 from collections import defaultdict, Counter
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import pastel_color_codes as p_codes
 
+#-----------------------------------------
+        ## Helper functions
+#-----------------------------------------
 ## Pastel color list
-def get_random_color(pastel_factor = 0.5):
-    return [(x+pastel_factor)/(1.0+pastel_factor) for x in [random.uniform(0,1.0) for i in [1,2,3]]]
-
-def color_distance(c1,c2):
-    return sum([abs(x[0]-x[1]) for x in zip(c1,c2)])
-
-def generate_new_color(existing_colors, pastel_factor=0.5):
-    max_distance = None
-    best_color = None
-    for i in range(0,100):
-        color = get_random_color(pastel_factor = pastel_factor)
-        if not existing_colors:
-            return color
-        best_distance = min([color_distance(color,c) for c in existing_colors])
-        if not max_distance or best_distance > max_distance:
-            max_distance = best_distance
-            best_color = color
-    return best_color
+pastel_color_names = pd.read_csv("Dashboard/pastel_color_names.txt")
+pastel_color_names.iloc[:, 0] = [i.strip().lower().replace(" ", "") for i in pastel_color_names.iloc[:,0].values]
+p_color_dict = {}
+for p_color in range(pastel_color_names.shape[0]):
+    if pastel_color_names.iloc[p_color].values[0] in p_codes.colors.keys():
+        p_color_dict[ pastel_color_names.iloc[p_color].values[0] ] = p_codes.colors[ pastel_color_names.iloc[p_color].values[0] ].hex_format()
 
 ## Read in datasets/Data cleaning step
 df = pd.read_csv("Dashboard/Annotated_Resumes.csv")
@@ -58,43 +51,82 @@ def color_dict(gradient):
       "g":[RGB[1] for RGB in gradient],
       "b":[RGB[2] for RGB in gradient]}
 
-
-def linear_gradient(start_hex, finish_hex="#FFFFFF", n=10):
-  ''' returns a gradient list of (n) colors between
+def linear_gradient(start_hex=None, finish_hex=None, n=10):
+    ''' 
+    returns a gradient list of (n) colors between
     two hex colors. start_hex and finish_hex
     should be the full six-digit color string,
-    inlcuding the number sign ("#FFFFFF") '''
-  # Starting and ending colors in RGB form
-  s = hex_to_RGB(start_hex)
-  f = hex_to_RGB(finish_hex)
-  # Initilize a list of the output colors with the starting color
-  RGB_list = [s]
-  # Calcuate a color at each evenly spaced value of t from 1 to n
-  for t in range(1, n):
-    # Interpolate RGB vector for color at the current value of t
-    curr_vector = [
-      int(s[j] + (float(t)/(n-1))*(f[j]-s[j]))
-      for j in range(3)
-    ]
-    # Add it to our list of output colors
-    RGB_list.append(curr_vector)
+    inlcuding the number sign ("#FFFFFF")
+    '''
+    # Starting and ending colors in RGB form
+    s = hex_to_RGB(str(start_hex))
+    f = hex_to_RGB(str(finish_hex))
+    
+    # Initilize a list of the output colors with the starting color
+    RGB_list = [s]
+    # Calcuate a color at each evenly spaced value of t from 1 to n
+    for t in range(1, n):
+        # Interpolate RGB vector for color at the current value of t
+        curr_vector = [
+        int(s[j] + (float(t)/(n-1))*(f[j]-s[j]))
+        for j in range(3)
+        ]
+        # Add it to our list of output colors
+        curr_vector = RGB_to_hex(curr_vector)
+        RGB_list.append(curr_vector)
+    
+    # sort color from lightest to darkest
+    RGB_list[0] = RGB_to_hex(RGB_list[0])
+    RGB_list = sorted(RGB_list, key=lambda c: step(c), reverse=True )
+    return RGB_list
+    # return color_dict(RGB_list)
 
-  return color_dict(RGB_list)
+## Color sorting: https://www.alanzucconi.com/2015/09/30/colour-sorting/
+def step(hexrgb, repetitions=1):
+    rgb = hex_to_RGB(hexrgb)
+    lum = math.sqrt( .241 * rgb[0] + .691 * rgb[1] + .068 * rgb[2] )
+    
+    h, s, v = get_hsv(hexrgb)
+    
+    h2 = int(h * repetitions)
+    lum2 = int(lum * repetitions)
+    v2 = int(v * repetitions)
+        
+    return (h2, lum, v2)
 
+def get_hsv(hexrgb):
+    hexrgb = hexrgb.lstrip("#")   # in case you have Web color specs
+    lh = len(hexrgb)
+    # Allow short and long hex codes
+    r, g, b = (int(hexrgb[i:i+lh//3], 16) / 255.0 for i in range(0, lh, lh//3))
+    return colorsys.rgb_to_hsv(r, g, b)
 
-def rand_hex_color(num=1):
-  ''' Generate random hex colors, default is one,
-      returning a string. If num is greater than
-      1, an array of strings is returned. '''
-  colors = [
-    RGB_to_hex([x*255 for x in np.random.rand(3)])
-    for i in range(num)
-  ]
-  if num == 1:
-    return colors[0]
-  else:
+def rand_hex_color(num=3, from_pcodes=False):
+    '''
+    choose N pastel colors from p_color_dict, default is one,
+    returning a list of hex encoding strings. If num is greater than
+    1, an array of strings is returned. 
+    '''
+    colors = []
+    if from_pcodes == False:
+        while len(colors) < num:
+            c_hex = p_color_dict[random.choice(list( p_color_dict.keys() ))]
+            if c_hex in colors:
+                continue
+            colors.append(c_hex)
+
+            # c_hex = p_codes.colors[ random.choice( list( p_codes.colors.keys() )) ].hex_format()
+            # if c_hex in colors:
+            #     continue
+            # colors.append(c_hex)
+    else:
+        while len(colors) < num:
+            c_hex = p_codes.colors[ random.choice( list( p_codes.colors.keys() )) ].hex_format()
+            if c_hex in colors:
+                continue
+            colors.append(c_hex)
+    
     return colors
-
 
 def polylinear_gradient(colors, n):
   ''' returns a list of colors forming linear gradients between
@@ -104,39 +136,22 @@ def polylinear_gradient(colors, n):
   n_out = n
 #   int(float(n) / (len(colors) - 1))
   # returns dictionary defined by color_dict()
-  gradient_dict = linear_gradient(colors[0], colors[1], n_out)
+  gradient_list = linear_gradient(colors[0], colors[1], n_out)
 
   if len(colors) > 1:
     for col in range(1, len(colors) - 1):
-      next = linear_gradient(colors[col], colors[col+1], n_out)
-      for k in ("hex", "r", "g", "b"):
-        # Exclude first point to avoid duplicates
-        gradient_dict[k] += next[k][1:]
+      more_colors = linear_gradient(colors[col], colors[col+1], n_out)
+      # Exclude first point to avoid duplicates
+      gradient_list.extend(more_colors)
 
-  return gradient_dict
+    #   for k in ("hex", "r", "g", "b"):
+    #     # Exclude first point to avoid duplicates
+    #     gradient_dict[k] += next[k][1:]
+
+  return gradient_list
 
 def get_df():
     return df
-
-def color_generator(n, interval=None):
-    result = []
-
-    random_number = random.randint(0,16777215)
-    hex_number = str(hex(random_number))
-    hex_number ='#'+ hex_number[2:]
-
-    for i in range(n):
-        random_number = random.randint(0,16777215)
-        hex_number = str(hex(random_number))
-        hex_number ='#'+ hex_number[2:]
-
-        # to make sure each color is unique
-        while hex_number in result:
-            random_number = random.randint(0,16777215)
-            hex_number = str(hex(random_number))
-            hex_number ='#'+ hex_number[2:]
-        result.append(hex_number)
-    return result
 
 def get_subset_resumes(skills_df, industry, df=df):
     """
@@ -202,13 +217,14 @@ df["start_date_new"] = df.apply(change_dates, axis=1, args=(1,))
 df = df.drop(["start_date", "end_date"], axis=1)
 
 # -----------------------------------------------------------------------------------------------------------------------------------
-## Generating Chart functions
-"""
-Pie Chart 1~
-Category: Industry
-Value: % of ppl whose latest job is in that industry
-"""
+        ## Generating Chart functions
+# -----------------------------------------------------------------------------------------------------------------------------------
 def gen_chart_1():
+    """
+    Pie Chart 1~
+    Category: Industry
+    Value: % of ppl whose latest job is in that industry
+    """
     ## sort df according to descending start date
     df_sorted_date = df.sort_values("start_date_new", ascending=False)
 
@@ -230,17 +246,17 @@ def gen_chart_1():
     return chart1_df
 
 # -----------------------------------------------------------------------------------------------------------------------------------
-"""
-Donut chart 2~
-Category: Years of exp
-Value: % of ppl with those years of exp
-
-1. To get years of experience for each resume 
-    a) group the dataframe by the resume id, sort the group by start date in ascending order
-    b) take the end date of the 1st record - start date of the last record in the group to get years of experience
-2. Create a dataframe with unique resume id and store their respective years of experience
-"""
 def count_experience(group):
+    """
+    Donut chart 2~
+    Category: Years of exp
+    Value: % of ppl with those years of exp
+
+    1. To get years of experience for each resume 
+        a) group the dataframe by the resume id, sort the group by start date in ascending order
+        b) take the end date of the 1st record - start date of the last record in the group to get years of experience
+    2. Create a dataframe with unique resume id and store their respective years of experience
+    """
     group = group.sort_values(by="start_date_new", ascending=False)
     num_experience_years = group.iloc[0, 5].year - group.iloc[-1, 4].year # end date of latest job - start date of 1st job
     return num_experience_years
@@ -340,23 +356,22 @@ def gen_chart_3(industry=None):
         return chart_3_df
 
 # -----------------------------------------------------------------------------------------------------------------------------------
-"""
-Bar Chart 4~
-Takes in multiple industry and checks for each industry and for each person, what industry was the person in their previous jobs prior to his current industry
-If the previous industry is the same as selected industry, don't count it. 
-Normalise count by total people in that selected industry
-
-Table schema:
-Selected Industry | previous_industry_1 | previous_industry_2 | previous_industry_N-1
-----------------------------------------------------------------
-    Finance       |     20%             |          20%        |     (N-1)%
-   Engineering    |     10%             |          30%        |     (N-1)%
-        .
-        .
-        .
-"""
 def gen_chart_4(current_industry=None):
+    """
+    Bar Chart 4~
+    Takes in multiple industry and checks for each industry and for each person, what industry was the person in their previous jobs prior to his current industry
+    If the previous industry is the same as selected industry, don't count it. 
+    Normalise count by total people in that selected industry
 
+    Table schema:
+    Selected Industry | previous_industry_1 | previous_industry_2 | previous_industry_N-1
+    ----------------------------------------------------------------
+        Finance       |     20%             |          20%        |     (N-1)%
+       Engineering    |     10%             |          30%        |     (N-1)%
+            .
+            .
+            .
+    """
     if current_industry == None:
         current_industry = get_top_n()
 
@@ -431,28 +446,28 @@ def gen_chart_5(industries=None):
     return chart_5_df
 
 # -----------------------------------------------------------------------------------------------------------------------------------
-"""
-Stacked Bar chart 6
-
-Y-axis: Industry
-X-axis: % of ppl with Z years of experience 
-
-Table schema:
-    Years | Business | Tech   | ... | N industry 
-     0    |   10     |   20   | ... |  5
-     1    |   5      |   5    | ... |  10
-                     .
-                     .
-                     .
-
-Input:
-    :Industries: list of strings of industry from user selection
-Output:
-    A dataframe with the mentioned table schema
-        :rows - industry selected
-        :columns - different years of experience
-"""
 def gen_chart_6(industries=None):
+    """
+    Stacked Bar chart 6
+
+    Y-axis: Industry
+    X-axis: % of ppl with Z years of experience 
+
+    Table schema:
+        Years | Business | Tech   | ... | N industry 
+         0    |   10     |   20   | ... |  5
+         1    |   5      |   5    | ... |  10
+                        .
+                        .
+                        .
+
+    Input:
+        :Industries: list of strings of industry from user selection
+    Output:
+        A dataframe with the mentioned table schema
+            :rows - industry selected
+            :columns - different years of experience
+    """
     years_df = ""
     for selected_ind in industries:
         tmp_df = gen_chart_2(selected_ind)
@@ -466,21 +481,23 @@ def gen_chart_6(industries=None):
 
 # -----------------------------------------------------------------------------------------------------------------------------------
 """
-Stacked bar chart 7
-Y-axis: Industry
-X-axis: # of ppl (category: avg job duration)
 
-Table schema:
-Avg job duration (year) | selected_industry_1 | selected_industry_2 | selected_industry_N
-        1               |           30%        |         10%        |         20%
-        2               |           10%        |         5%         |         60%
-                                            .
-                                            .
-                                            .
-        n               |           1%         |          2%        |          1%
 """
 def gen_chart_7(industries=None):
     """
+    Stacked bar chart 7
+    Y-axis: Industry
+    X-axis: # of ppl (category: avg job duration)
+
+    Table schema:
+    Avg job duration (year) | selected_industry_1 | selected_industry_2 | selected_industry_N
+            1               |           30%        |         10%        |         20%
+            2               |           10%        |         5%         |         60%
+                                                .
+                                                .
+                                                .
+            n               |           1%         |          2%        |          1%
+
     How I process the dataset:
     groupby industry to get all records who worked in that industry
     groupby resume to get duration that person stayed in that industry
@@ -527,3 +544,27 @@ def gen_chart_7(industries=None):
     # print([chart_7_df.loc[:, chart_7_df.columns.values].sum()])
     chart_7_df.index.name = 'avg_duration'
     return chart_7_df.sort_index()
+
+# --------------------------------------------
+        ## Dumping Place for old codes
+# --------------------------------------------
+# Old color generator function
+def color_generator(n, interval=None):
+    result = []
+
+    random_number = random.randint(0,16777215)
+    hex_number = str(hex(random_number))
+    hex_number ='#'+ hex_number[2:]
+
+    for i in range(n):
+        random_number = random.randint(0,16777215)
+        hex_number = str(hex(random_number))
+        hex_number ='#'+ hex_number[2:]
+
+        # to make sure each color is unique
+        while hex_number in result:
+            random_number = random.randint(0,16777215)
+            hex_number = str(hex(random_number))
+            hex_number ='#'+ hex_number[2:]
+        result.append(hex_number)
+    return result

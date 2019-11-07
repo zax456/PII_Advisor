@@ -1,26 +1,31 @@
 import pandas as pd
 import numpy as np
 import random
+from colour import Color
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import data_processing as dp
+import data_processing_V2 as dp
 import plotly.graph_objs as go
 
-# CSS 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# print(dp.polylinear_gradient(dp.rand_hex_color(3), 16))
 
 """
 Generate all chart dataframes, and create data structure (data and layout) to fit into Dash chart's parameters
 """
 ## Chart 1
 chart1_df = dp.gen_chart_1()
-colors_chart1 = list(np.random.choice(range(256), size=chart1_df.shape[0]))
+colors_1 = dp.rand_hex_color(num=chart1_df.shape[0])
+# dp.polylinear_gradient(dp.rand_hex_color(num=2), n=chart1_df.shape[0])
+
 trace1 = {
-    'labels': chart1_df["Industry"].values.tolist(),
-    'values': chart1_df["Percentage"].values.tolist(),
-    'marker': colors_chart1,
+    'labels': chart1_df["Industry"].values.tolist(), # Y axis
+    'values': chart1_df["Percentage"].values.tolist(), # X axis
+    'marker': dict(
+        colors=colors_1, 
+        line=dict(color='#000000', width=2)
+        ),
     'type': 'pie'
 }
 layout1 = {
@@ -31,11 +36,15 @@ layout1 = {
 
 ## Chart 2
 chart2_df = dp.gen_chart_2()
-colors_chart2 = list(np.random.choice(range(256), size=chart2_df.shape[0]))
+colors_2 = dp.rand_hex_color(num=chart2_df.shape[0])
+# dp.polylinear_gradient(dp.rand_hex_color(num=2), n=chart2_df.shape[0])
 trace2 = {
-    'labels': chart2_df.index.tolist(),
-    'values': chart2_df["percentage"].values.tolist(),
-    'marker': colors_chart2,
+    'labels': chart2_df.index.tolist(),                 # Y axis
+    'values': chart2_df["percentage"].values.tolist(),  # X axis
+    'marker':dict(
+        colors=colors_2, 
+        line=dict(color='#000000', width=2)
+        ),
     'type': 'pie',
     'hole': 0.3
 }
@@ -50,7 +59,7 @@ layout2 = {
 
 ## Chart 3
 chart3_df = dp.gen_chart_3()
-colors_3 = dp.color_generator(n=chart3_df.shape[0])
+colors_3 = dp.rand_hex_color(num=chart3_df.shape[0])
 
 ## set X and Y values
 data3 = [{
@@ -70,15 +79,20 @@ data3 = [{
 layout3 = {
     "title":'Distribution of the top 10 skills in the population',
     'yaxis':{'automargin':True},
-    'xaxis':{'tickfont':{
-        'size': 17
-    }},
+    'xaxis':{'tickangle': -45, 
+             'tickfont':{
+                 'size': 9.5
+                }
+            },
     'hovermode':'closest',
+    'plot_bgcolor': "#F4F4F4"
 }
 
 ## Chart 6
 chart6_df = dp.gen_chart_6(["IT", "Business"])
-colors_6 = dp.color_generator(n=chart6_df.shape[0])
+start_color = Color("#FFEC8B") # lightgoldenrod1
+finish_color = Color("#8B814C") # lightgoldenrod4
+colors_6 = dp.linear_gradient(start_hex=start_color.hex_l, finish_hex=finish_color.hex_l, n = chart6_df.shape[0])
 
 y_data_6 = chart6_df.columns.tolist()
 x_data_6 = chart6_df.values.T
@@ -137,12 +151,20 @@ layout6 = {
     }},
     'xaxis':{'visible':False},
     'hovermode':'closest',
-    'barmode': 'stack'
+    'barmode': 'stack',
+    'plot_bgcolor': "#F4F4F4"
 }
 
 ## Chart 7
 chart7_df = dp.gen_chart_7(["Admin", "Business", "Engineering"])
-colors_7 = dp.color_generator(n=chart7_df.shape[0])
+start_color = Color("#7FFFD4") # aquamarine1
+finish_color = Color("#458B74") # aquamarine4
+colors_7 = dp.linear_gradient(
+    start_hex=start_color.hex_l, 
+    finish_hex=finish_color.hex_l, 
+    n = chart6_df.shape[0]
+    )
+
 y_data_7 = chart7_df.columns.tolist()
 x_data_7 = chart7_df.values.T
 indices_7 = chart7_df.index.tolist()
@@ -200,12 +222,13 @@ layout7 = {
         'size': 14
     }},
     'hovermode':'closest',
-    'barmode': 'stack'
+    'barmode': 'stack',
+    'plot_bgcolor': "#F4F4F4"
 }
 
 ## Chart 5
 chart5_df = dp.gen_chart_5(["IT", "Business"])
-colors_5 = dp.color_generator(chart5_df.shape[0])
+colors_5 = dp.rand_hex_color(num=chart5_df.shape[0], from_pcodes=True)
 
 ## set X and Y values
 data5 = []
@@ -251,7 +274,8 @@ layout5 = {
     'hovermode': 'closest',
     'xaxis': {'tickfont':{
         'size': 14
-    }}
+    }}, 
+    'plot_bgcolor': "#F4F4F4"
 }
 # ----------------------------------------------------------------------------------------
 """
@@ -279,82 +303,95 @@ stack_bar_6_fig = {'data':data6, 'layout':layout6}
 ## Chart 7
 stack_bar_7_fig = {'data':data7, 'layout':layout7}
 # ----------------------------------------------------------------------------------------
-app = dash.Dash(external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div(children=[
-    html.H1(children='Workforce Health Analytics Dashboard', style={'textAlign': 'center'}),
+    ## Logo
+    ## Headers
+    html.Div([
+        html.Img(height="100px", width="250px", src='assets/logo_govtech_hort.gif', className="top shadow"),
+        html.Img(height="100px", width="250px", src='assets/mycareersfuture.JPG', className="shadow", style={'float':'right', 'margin-top': '1%', 'margin-right':'2%'}),
+        html.H1(children=['Workforce Health Analytics'], className="header"),
+        html.H3(children='Interactive Dashboard', className="subHeader")
+    ], className="top"),
+
+    ## Filter bar
     html.Div([
         html.Div([
             dcc.Dropdown(
                 id='main-filter',
+                placeholder='Select an industry',
                 options=[
                     {'label': ind, 'value': ind} for ind in dp.get_df()['industry'].unique()
                 ],
                 value=[],
-                multi=True
+                multi=True,
+                searchable=False
             )
-        ])
+        ], className="twelve column")
+    ], id="navbar", className="row bar", style={'margin-bottom': '2%', 'margin-left':'2%', 'margin-right':'2%'}), 
 
-    ], className="row"), 
-
+    ## 1st layer of charts
     html.Div([
         html.Div([
             dcc.Graph(
                 id='stacked_bar4',
                 figure={}
                 )
-                ], className="six columns"),
+                ], className="seven columns shadow"),
 
         html.Div([
             dcc.Graph(
                 id='stacked_bar5',
                 figure=bar5_fig
-                )], className="six columns")
+                )], className="seven columns shadow")
 
-    ], className="row"),
+    ], className="row", style={'margin-bottom': '2%'}),
 
+    ## 2nd layer of charts
     html.Div([
         html.Div([
             dcc.Graph(
                 id='stacked_bar6',
                 figure=stack_bar_6_fig
                 )
-                ], className="six columns"), 
+                ], className="seven columns shadow"), 
 
         html.Div([
             dcc.Graph(
                 id='stacked_bar7',
                 figure=stack_bar_7_fig
                 )
-                ], className="six columns")
+                ], className="seven columns shadow")
 
-    ], className="row"),
+    ], className="row", style={'margin-bottom': '2%'}),
 
+    ## 3rd layer of charts (Anchor charts)
     html.Div([        
         html.Div([
             dcc.Graph(
                 id='pie1',
                 figure=pie_1_fig
                 )
-            ], className="four columns"),
+            ], className="four columns shadow"),
 
         html.Div([
             dcc.Graph(
                 id='donut2',
                 figure=donut_2_fig
                 )
-            ], className="four columns"),
+            ], className="four columns shadow"),
 
         html.Div([
             dcc.Graph(
                 id='bar3',
                 figure=bar_3_fig
                 )
-            ], className="four columns")
+            ], className="four columns shadow")
 
-        ], className="row")
-        
+        ], className="row", style={'margin-bottom': '3%'})
+
 ], className="container")
 
 # ---------------------------------------------------------------------------------------------------------
@@ -368,19 +405,68 @@ def get_selected_ind(selected_inds):
     if selected_inds == []:
         selected_inds = dp.get_top_n(10)
     chart4_df = dp.gen_chart_4(selected_inds)
-    data4 = [{
-        'x': chart4_df[industry].values.tolist(),
-        'y': chart4_df.index.values.tolist(),
-        'type': 'bar',
-        'name': industry,
-        'orientation':'h'
-    } for industry in chart4_df.columns]
+    colors_4 = dp.rand_hex_color(num=chart4_df.shape[1], from_pcodes=True)
+
+    data4 = []
+    tracker = [] # see which columns has been added to chart
+                 # to prevent duplicates in legend
+    x_data_4 = chart4_df.values.T # previous industry data
+    columns_data_4 = chart4_df.columns.tolist() # previous industries
+    indices_4 = chart4_df.index.values.tolist() # current industries
+
+    hovertext_4 = {}
+    ## to get hover information
+    for i in range(x_data_4.shape[0]):
+        tmp = []
+        for j in range(len(x_data_4[0])):
+            txt = "{}% was from {}".format(x_data_4[i][j], columns_data_4[i] )
+            tmp.append(txt)
+        hovertext_4[columns_data_4[i]] = tmp
+
+    for i in range(len(columns_data_4)):
+        if columns_data_4[i] in tracker:
+            tmp = {
+                'x': chart4_df.loc[:, columns_data_4[i]].tolist(),
+                'y': indices_4,
+                'type': 'bar',
+                'orientation': 'h',
+                'name': columns_data_4[i],
+                'marker': {
+                    'color': colors_4[i],
+                    'line': dict(color='rgb(248, 248, 249)', width=1)
+                },
+                'hovertext': hovertext_4[columns_data_4[i]],
+                'hoverinfo': "text",
+                'showlegend': False
+            }
+        else:
+            tracker.append(columns_data_4[i])
+            tmp = {
+                'x': chart4_df.loc[:, columns_data_4[i]].tolist(),
+                'y': indices_4,
+                'type': 'bar',
+                'orientation': 'h',
+                'name': columns_data_4[i],
+                'marker': {
+                    'color': colors_4[i],
+                    'line': dict(color='rgb(248, 248, 249)', width=1)
+                },
+                'hovertext': hovertext_4[columns_data_4[i]],
+                'hoverinfo': "text"
+            }
+        data4.append(tmp)
+
     layout4 = {
         "title":'Movement of people moving across to other industries',
-        'yaxis':{'tickangle': -35},
+        'yaxis':{'tickangle': 0, 
+                 'tickfont':{
+                     'size': 10
+                    }
+                },
         'hovermode':'closest',
         'barmode': 'group',
-        "width": 500
+        'plot_bgcolor': "#F4F4F4",
+        'margin':{'l':130}
     }
     return {
         'data':data4,

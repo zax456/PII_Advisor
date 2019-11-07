@@ -1,0 +1,43 @@
+pastel_colors 	 
+Snow 2	 
+Snow 3	 
+Snow 4 
+Gainsboro	 	 
+Old Lace	 
+Linen	 
+Antique White	 
+Antique White 2	 
+Antique White 3	 
+Antique White 4	 
+Papaya Whip	 
+Blanched Almond	 
+Bisque	 
+Bisque 2	 
+Bisque 3	 
+Bisque 4	 
+Peach Puff	 
+Peach Puff 2	 
+Peach Puff 3	 
+Peach Puff 4	 
+Navajo White	 
+Moccasin	 
+Cornsilk	 
+Cornsilk 2	 
+Cornsilk 3	 
+Cornsilk 4	 
+Ivory	 
+Ivory 2	 
+Ivory 3	 
+Ivory 4	 
+Lemon Chiffon	 
+Seashell	 
+Seashell 2	 
+Seashell 3	 
+Seashell 4	 
+Honeydew	 
+Honeydew 2	 
+Honeydew 3	 
+Honeydew 4	   
+Lavender	 
+Lavender Blush	 
+Misty Rose
