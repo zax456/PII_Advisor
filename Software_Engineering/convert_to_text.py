@@ -13,6 +13,18 @@ from io import StringIO
 
 #remaining to test: doc, txt
 
+def convert_to_text_with_ext(path, ext):
+    if ext == 'pdf':
+        return getPDFcontent(path)
+    if ext == 'odt':
+        return getODTContent(path)
+    if ext == 'doc':
+        return getDOCcontent(path)
+    if ext == 'txt':
+        return getTXTcontent(path)
+    if ext == 'docx':
+        return getDocxContent(path)
+
 def convert_to_text(filepath):
     if filepath[-3:]=='pdf':
         return getPDFcontent(filepath)
