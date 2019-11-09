@@ -20,6 +20,13 @@ def get_chart_1_fig():
     colors_1 = dp.rand_hex_color(num=chart1_df.shape[0])
     # dp.polylinear_gradient(dp.rand_hex_color(num=2), n=chart1_df.shape[0])
 
+    x_data_1 = chart1_df.values.tolist()
+    hovertext_1 = []
+    ## to get hover information
+    for i in range(len(x_data_1)):
+        txt = f"{x_data_1[i][0]}: <br>{x_data_1[i][1]}%"
+        hovertext_1.append(txt)
+
     trace1 = {
         'labels': chart1_df["Industry"].values.tolist(), # Y axis
         'values': chart1_df["Percentage"].values.tolist(), # X axis
@@ -27,12 +34,13 @@ def get_chart_1_fig():
             colors=colors_1, 
             line=dict(color='#000000', width=2)
             ),
-        'type': 'pie'
+        'type': 'pie',
+        'hovertext': hovertext_1,
+        'hoverinfo': "text",
     }
     layout1 = {
         "title":'Population distribution <br>across each industry',
         'showlegend': False
-        # 'legend': {'font': {'size':5}}
     }
     return {
         'data': [trace1],
@@ -42,11 +50,21 @@ def get_chart_1_fig():
 ## Chart 2
 def get_chart_2_fig():
     chart2_df = dp.gen_chart_2()
-    years_group = chart2_df.index.tolist()
-    colors_2 = dp.rand_hex_color(num=chart2_df.shape[0])
-    # dp.polylinear_gradient(dp.rand_hex_color(num=2), n=chart2_df.shape[0])
+    years_group = [str(y) + " years" for y in chart2_df.index.tolist()]
+    start_color = Color("#FFE4E1") # mistyrose1
+    finish_color = Color("#8B7D7B") # mistyrose4
+    colors_2 = dp.linear_gradient(start_hex=start_color.hex_l, finish_hex=finish_color.hex_l, n = chart2_df.shape[0])
+    
+    x_data_2 = chart2_df.values.tolist()
+    indices_2 = chart2_df.index.tolist()
+    hovertext_2 = []
+    ## to get hover information
+    for i in range(len(x_data_2)):
+        txt = f"{indices_2[i]} years: <br>{x_data_2[i][0]}%"
+        hovertext_2.append(txt)
+
     trace2 = {
-        'labels': years_group,                 # Y axis
+        'labels': years_group,                              # Y axis
         'values': chart2_df["percentage"].values.tolist(),  # X axis
         'marker':dict(
             colors=colors_2, 
@@ -55,12 +73,14 @@ def get_chart_2_fig():
         'type': 'pie',
         'hole': 0.3,
         'sort': False,
-        'name': [f'{group} years' for group in years_group]
+        'name': [f'{group} years' for group in years_group],
+        'hovertext': hovertext_2,
+        'hoverinfo': "text",
+        'direction': 'clockwise'
     }
     layout2 = {
         "title": {
             'text': 'Population Experience distribution <br>across each industry'
-            # 'font': {'size': 14}
             },
         'showlegend': True,
         'legend_orientation': 'h',
@@ -70,10 +90,10 @@ def get_chart_2_fig():
             'x': 1,
             'y': 0.5,
             },
-        'annotations': [
-            dict(x=1.21, y=0.81, xref='paper', yref='paper', text='Years', 
-            font=dict(size=14), showarrow=False)
-            ]
+        # 'annotations': [
+        #     dict(x=1.21, y=0.81, xref='paper', yref='paper', text='Years', 
+        #     font=dict(size=14), showarrow=False)
+        #     ]
     }
     return {
         'data': [trace2],
@@ -85,6 +105,14 @@ def get_chart_3_fig():
     chart3_df = dp.gen_chart_3()
     colors_3 = dp.rand_hex_color(num=chart3_df.shape[0])
 
+    x_data_3 = chart3_df.values.tolist()
+    indices_3 = chart3_df.index.tolist()
+    hovertext_3 = []
+    ## to get hover information
+    for i in range(len(x_data_3)):
+        txt = f"{indices_3[i]}: <br>{x_data_3[i][0]}"
+        hovertext_3.append(txt)
+
     ## set X and Y values
     data3 = [{
         'x': chart3_df.index.tolist(),
@@ -95,7 +123,7 @@ def get_chart_3_fig():
             color=colors_3,
             line=dict(color='rgb(248, 248, 249)', width=1)
             ),
-        'hovertext': chart3_df["count"].tolist(),
+        'hovertext': hovertext_3,
         'hoverinfo': "text" 
     }]
 
