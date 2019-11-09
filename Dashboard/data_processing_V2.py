@@ -261,25 +261,27 @@ def count_experience(group):
     num_experience_years = group.iloc[0, 5].year - group.iloc[-1, 4].year # end date of latest job - start date of 1st job
     return num_experience_years
 
-def gen_chart_2(industry=None):
-    if industry == None: # return % of years of experience for whole population
-        years_of_exp = pd.DataFrame(df.groupby("resume").apply(lambda x: count_experience(x)), columns=["Years"])
-        total = years_of_exp.shape[0]
-        years_of_exp = years_of_exp.groupby("Years").agg(
-            percentage = pd.NamedAgg(column="Years", aggfunc=lambda x: round(x.value_counts()/total*100, 2))
-            )
-        
-        return years_of_exp
-    else: # return % of years of experience for that industry
-        years_of_exp = pd.DataFrame(df[df["industry"] == industry].groupby("resume").apply(lambda x: count_experience(x)), columns=["Years"])
-        total = years_of_exp.shape[0]
-        years_of_exp = years_of_exp.groupby("Years").agg(
-            # normalise Years column and append them to column named 'percentage'
-            percentage = pd.NamedAgg(column="Years", aggfunc=lambda x: round(x.value_counts()/total*100, 2))
-            )
-        years_of_exp.columns = [industry]
+def get_year_group(years_of_exp):
+    if years_of_exp <= 2: return '0-2'
+    if years_of_exp <= 5: return '3-5'
+    if years_of_exp <= 10: return '6-10'
+    if years_of_exp <= 15: return '11-15'
+    if years_of_exp <= 20: return '16-20'
+    return '> 20'
 
-        return years_of_exp
+def gen_chart_2(industry=None):
+    if industry: years_of_exp = df[df["industry"] == industry]
+    else: years_of_exp = df.copy()
+    years_of_exp = pd.DataFrame(years_of_exp.groupby("resume").apply(lambda x: count_experience(x)), columns=["Years"])
+    years_of_exp['years_group'] = years_of_exp['Years'].apply(get_year_group)
+    years_of_exp = years_of_exp.groupby('years_group').agg({'Years': ['count', 'max']})
+    years_of_exp = years_of_exp['Years']
+    years_of_exp.sort_values(by='max', inplace=True) # quick 'hack' to sort year groups in asc order
+    years_of_exp.drop(labels='max', inplace=True, axis=1)
+    years_of_exp['count'] = round(years_of_exp['count'] / years_of_exp['count'].sum() * 100, 2)
+    years_of_exp.rename(columns={'count': 'percentage'}, inplace=True)
+    if industry: years_of_exp.columns = [industry]
+    return years_of_exp
 
 # -----------------------------------------------------------------------------------------------------------------------------------
 def gen_chart_3(industry=None):
@@ -477,6 +479,13 @@ def gen_chart_6(industries=None):
             years_df = pd.concat([years_df, tmp_df], axis=1)
 
     years_df.fillna(0, inplace=True)
+
+    # sort the year groups in asc order
+    years_df['year_order'] = years_df.index
+    years_df['year_order'] = pd.Categorical(years_df['year_order'], ["0-2", "3-5", "6-10", "11-15", "16-20", "> 20"])
+    years_df.sort_values('year_order', inplace=True)
+    years_df.drop(labels='year_order', inplace=True, axis=1)
+
     return years_df
 
 # -----------------------------------------------------------------------------------------------------------------------------------
