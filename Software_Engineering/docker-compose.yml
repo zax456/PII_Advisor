@@ -1,12 +1,122 @@
+#
+# note
+# ^^^^
+# - this docker-compose is meant to simulate the production setup
+# - there are 3 databases because there will be 3 in production even
+#   though it's not exactly necessary since in development we can just
+#   have one and connect to it
+#
 version: '3'
 services:
   web:
-    build: .
+    # this uses the Dockerfile in the same directory as the docker-compose.yml
+    # build: .
+    # this specifies the image name to tag the image with after building
+    image: bt3101/pii:latest
+    # specifies the script to run on startup
+    entrypoint: ["python", "/app/run.py"]
+    # specifies the environment
+    environment:
+      # uncomment below line to enable production mode
+      PRODUCTION: "false"
+      # specifies the data directory
+      DATA_DIR: /data
+      # this specifies db credentials for the db to read data from
+      PROD_HOST: prod_db_read
+      PROD_USER: reader
+      PROD_PORT: "3306"
+      PROD_PASSWORD: password
+      PROD_DBNAME: read
+      PROD_TABLENAME: jobseeker_documents
+      # this specifies db credentials for the db to write data to
+      PROD_SEP_HOST: prod_db_write
+      PROD_SEP_USER: writer
+      PROD_SEP_PORT: "3306"
+      PROD_SEP_PASSWORD: password
+      PROD_SEP_DBNAME: write
+      PROD_SEP_TABLENAME: jobseeker_documents
+      PROD_SEP_TABLENAME_2: tmp
+      # this specifies db credentials for the db that stores the pii
+      PII_DB_HOST: pii_db
+      PII_DB_USER: shh
+      PII_DB_PORT: "3306"
+      PII_DB_PASSWORD: password
+      PII_DB_DBNAME: results
+      PII_DB_TABLENAME: pii
+    # expose port 5000 on our local machine, mapped to port 80 inside the container
     ports:
-    - "5000:80"
+      - 5000:8080
+    # basically get it to start after the database status service
+    depends_on:
+      - db_status
+    # these are development settings
     volumes:
-    # - /Users/tonytonggg/Desktop/:/dst
-    - ./../data_science/unit_tests/sample_resumes/:/Resumes
+      - ./data:/data
+      - .:/app
+  # this fella checks for the database status
+  db_status:
+    build:
+      context: ./tools/mysqlclient
+    image: local/mysqlclient:latest
+    environment:
+      READ_DB_USER: reader
+      READ_DB_PASSWORD: password
+      READ_DB_HOST: prod_db_read
+      READ_DB_PORT: "3306"
+      READ_DB_DATABASE: read
+      WRITE_DB_1_USER: writer
+      WRITE_DB_1_PASSWORD: password
+      WRITE_DB_1_HOST: prod_db_write
+      WRITE_DB_1_PORT: "3306"
+      WRITE_DB_1_DATABASE: write
+      WRITE_DB_2_USER: shh
+      WRITE_DB_2_PASSWORD: password
+      WRITE_DB_2_HOST: pii_db
+      WRITE_DB_2_PORT: "3306"
+      WRITE_DB_2_DATABASE: results
+    depends_on:
+      - prod_db_read
+      - prod_db_write
+      - pii_db
+    volumes:
+      - ./tools/mysqlclient/entrypoint.sh:/bin/entrypoint
+      - ./db/migrations:/migrations
+  # defines the read database (aka READ DB in the docs)
+  prod_db_read:
+    logging:
+      driver: none
+    image: mysql:5.7.25
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: reader
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: read
+    ports:
+      - 13306:3306
+  # defines the write database (aka WRITE DB 1 in the docs)
+  prod_db_write:
+    logging:
+      driver: none
+    image: mysql:5.7.25
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: writer
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: write
+    ports:
+      - 23306:3306
+  # defines the write database (aka WRITE DB 2 in the docs)
+  pii_db:
+    logging:
+      driver: none
+    image: mysql:5.7.25
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: shh
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: results
+    ports:
+      - 33306:3306
 
 # run this command: docker-compose up with this file in main directory
 # rmb that using this, need to call files from the /dst pathing
