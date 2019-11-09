@@ -65,7 +65,15 @@ def get_chart_2_fig():
         'showlegend': True,
         'legend_orientation': 'h',
         # 'sort': True
-        # 'legend': {'font': {'size':10}}
+        'legend': {
+            'font': {'size':12},
+            'x': 1,
+            'y': 0.5,
+            },
+        'annotations': [
+            dict(x=1.21, y=0.81, xref='paper', yref='paper', text='Years', 
+            font=dict(size=14), showarrow=False)
+            ]
     }
     return {
         'data': [trace2],
@@ -126,7 +134,7 @@ def get_chart_4_fig(selected_inds):
     for i in range(x_data_4.shape[0]):
         tmp = []
         for j in range(len(x_data_4[0])):
-            txt = "{}% was from {}".format(x_data_4[i][j], columns_data_4[i] )
+            txt = "{}% was from {}".format((x_data_4[i][j])*100, columns_data_4[i] )
             tmp.append(txt)
         hovertext_4[columns_data_4[i]] = tmp
 

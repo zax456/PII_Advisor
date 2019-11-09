@@ -116,7 +116,7 @@ def process_name(raw_text):
             if ent.label_ == "NAME":
                 return ent.text
     except:
-        print("process_name returned an error")                
+        print("process_name returned an error")
 
 ###################################################################
 
@@ -153,6 +153,7 @@ class Test(unittest.TestCase):
             parsed_string_check = True
         else:
             parsed_string_check = False
+        print(parsed_string)            
         self.assertTrue(parsed_string_check and dic_check)
         
         
@@ -188,6 +189,7 @@ class Test(unittest.TestCase):
             parsed_string_check = True
         else:
             parsed_string_check = False
+        print(parsed_string)    
         self.assertTrue(parsed_string_check and dic_check)
    
 # run this line
