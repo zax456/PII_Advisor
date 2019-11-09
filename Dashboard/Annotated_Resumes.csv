@@ -23,7 +23,7 @@ resume,company,industry,job_title,start_date,end_date
 1518,Dupont,Admin,Logistics associate,20110701,20111201
 1518,Institute of Mental Health,Admin,Doctor's associate,20150201,20150501
 1517,Wiscloud Technology Pte Ltd,Sales,Business Development Executive,20160701,20170201
-1517,Analytical Laboratories (Singapore) Pte. Ltd,Biotech,Intern Lab Analyst,20140501,20140701
+1517,Analytical Laboratories (Singapore) Pte. Ltd,BioTech,Intern Lab Analyst,20140501,20140701
 1517,Sony Electronics (Singapore) Pte. Ltd,Engineering,Product Consultant,20150601,20150801
 1516,Adelphi Digital,Engineering,Project Manager,20161001,20170301
 1516,KPMG Advisory Pte Ltd,Engineering,"Risk, Compliance and Internal Audit Consultant",20141101,20160901
@@ -219,7 +219,7 @@ resume,company,industry,job_title,start_date,end_date
 1,3M Innovation Technologies Singapore,Chemistry,Senior Analytical Chemist I,20120501,20130401
 1,3M Innovation Technologies Singapore,Chemistry,Analytical Chemist II,20100501,20120401
 1,3M Innovation Technologies Singapore,Chemistry,Analytical Chemist I,20090901,20100401
-1,Albany Molecular Research Inc. Singapore,Biotech,Research Scientist I,20070801,20090901
+1,Albany Molecular Research Inc. Singapore,BioTech,Research Scientist I,20070801,20090901
 2,"KS Distribution, Sigapore (KS Energy Group)",Business,Supply Chain Manager,20140101,20161201
 2,ArcelorMittal Singapore,Business,Warehouse & Logistics Manager,20120101,20131201
 2,Weatherford Asia,Business,Senior Sourcing Coordinator,20080101,20111201
