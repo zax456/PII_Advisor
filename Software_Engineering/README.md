@@ -106,3 +106,28 @@ This might have the same credentials as the READ database above, but the choice 
 
 The schema for this `PII_DB_TABLENAME` table, which is currently named `pii`, can be created by running the script at [./db/migrations/prod/201910241026_000_create_pii.sql](./db/migrations/prod/201910241026_000_create_pii.sql).
 
+## How Files Integrate Together
+
+For this solution to work, Docker has to be connected to a SQL database based on **config.py** and **docker-compose.yml** credentials. These credentials should correspond to the READ & WRITE Database as mentioned from the previous section.
+
+The SQL statements that are ran can be found in ** database_READ_config.ini ** and ** database_WRITE_config.ini **, which interacts heavily with ** db_connection_READ.py ** and ** db_connection_WRITE.py ** respectively to run SELECT/ INSERT statements that interface with the database.
+
+** main_functions ** is where the API routes are implemented, written in python Flask. It executes the data science functions from ** convert_to_text.py ** and ** process_string.py ** in the same directory.
+
+Whenever exceptions occur with the API routes, there are 2 places to debug information:
+- Immediate output from terminal (or wherever CURL request is called)
+- tmp database where error logs are stored
+
+Docker configurations and settings can be found in **Dockerfile** and **Makefile**
+
+## Directory Descriptions
+
+[data](./data) - Sample resumes as test inputs
+[db/migrations](./data/migrations) - SQL CREATE TABLE statements to initalise new database to interact with Docker functions
+[model_building](./model_building) - Productionsed Dataturks (NLP model) solution
+
+
+
+
+
+
