@@ -55,26 +55,29 @@ This directory contains:
 
 As well as some jupyter notebooks used in the research and development phase of our project.
 
-
 ** Note that the files in [Data Science](./data_science) are decoupled from those in [Software Engineering](./Software_Engineering), hence changes only made in [Data Science](./data_science) directory would not be propagated. 
 
-The key files in [Software Engineering](./Software_Engineering) that contains code from here is found in ** main_functions.py ** and ** process_string.py **.
+The key files in [Software Engineering](./Software_Engineering) that contains code from here is found in `convert_to_text.py` and `process_string.py`.
 
 #### [Dashboard](./Dashboard)
 
-The dashboard folder contains a prototype of what could be visualised after analysing the results of the PII advisor. 
+The dashboard folder contains a prototype of what could be visualised after analysing the results of the PII advisor. These charts were conceptualised based on client feedback and available data.
 
 ![Dashboard Screenshot](./Dashboard/dashboard-ss1.png)
 
 At the moment, there is no ETL process that converts the parsed resumes to dashboard visualisations.
 
+This directory contains:
+[Dataturk's pre-trained model and application code](./data_science/model_building)
+[Unit Tests](./data_science/unit_tests)
+
 #### Contributors
 
-Govtech Project Lead: zephinzer (Joseph Matthias Goh)
+- Govtech Project Lead: zephinzer (Joseph Matthias Goh)
 
-NUS Students: 
-Lee Chen Yuan
-Markus Ng
-Ang Kian Hwee
-Sheryl Ker
-Tong Tsz Hin (Tony)
+- NUS Students: 
+- Lee Chen Yuan
+- Markus Ng
+- Ang Kian Hwee
+- Sheryl Ker
+- Tong Tsz Hin (Tony)
