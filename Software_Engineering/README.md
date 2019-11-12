@@ -126,4 +126,43 @@ Docker configurations and settings can be found in `Dockerfile` and `Makefile`
 - [db/migrations](./data/migrations) - SQL CREATE TABLE statements to initalise new database to interact with Docker functions
 - [model_building](./model_building) - Productionsed Dataturks (NLP model) solution
 
+## Endpoints
+
+`upload`
+
+```sh
+curl localhost:5000/upload/ -d '{"filepath": "bar"}' -H 'Content-Type: application/json'
+```
+
+`parsed_content`
+#### @app.route('/parsed_content/<file_ext>/<file_path>', methods=['GET'])
+
+Parameters:
+file_ext: file extension (pdf, doc, docx, odt)
+file_path: The file name, without any upstream directories (any upstream directories should be configured in config.py file, under `data_directory` variable)
+
+Function:
+    Responds with a JSON structure containing 2 keys:
+    1. "content"
+    2. "piis"
+
+The "content" key contains the parsed content while the "piis" key contains the mapped PIIs. Call this function to retrieve the parsed content of a pre-existing file that the service has access to. If there is an error, it will be returned to the terminal/ curl request source. 
+
+Given that a local file resume_name.pdf is present in the same directory, run this command:
+```sh
+curl localhost:5000/parsed_content/pdf/resume_name -H 'Content-Type: application/json'
+```
+
+`directory_scan`
+
+```sh
+make build;
+```
+
+
+`cron_scan`
+
+```sh
+make build;
+```
 
