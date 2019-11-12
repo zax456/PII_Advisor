@@ -142,7 +142,6 @@ Function:
 
 If there are errors, they will be returned to the terminal, and the error message would also be inserted into `tmp` table, which stores log messages for such situations.
 
-
 ```sh
 curl localhost:5000/upload/ -d '{"filepath": "bar"}' -H 'Content-Type: application/json'
 ```
