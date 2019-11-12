@@ -128,14 +128,27 @@ Docker configurations and settings can be found in `Dockerfile` and `Makefile`
 
 ## Endpoints
 
-`upload`
+1) `upload`
+##### @app.route('/upload/<jobseeker_document_id>', methods=['POST', 'GET'])
+
+Parameters:
+jobseeker_document_id: Primary key of the `jobseeker_documents` table where we want to 
+conduct the masking for. 
+
+Function:
+    Responds with a string if 2 database insertions are successful:
+    `'Success. Parsed contents and PIIs inserted into 2 tables.`
+    1 insertion is into the `jobseeker_documents` table, namely the `parsed_content_v2` column, while the other insertion is into the `pii` table, where the `pii_json` column stores the PIIs extracted. 
+
+If there are errors, they will be returned to the terminal, and the error message would also be inserted into `tmp` table, which stores log messages for such situations.
+
 
 ```sh
 curl localhost:5000/upload/ -d '{"filepath": "bar"}' -H 'Content-Type: application/json'
 ```
 
-`parsed_content`
-#### @app.route('/parsed_content/<file_ext>/<file_path>', methods=['GET'])
+2) `parsed_content`
+##### @app.route('/parsed_content/<file_ext>/<file_path>', methods=['GET'])
 
 Parameters:
 file_ext: file extension (pdf, doc, docx, odt)
@@ -153,14 +166,14 @@ Given that a local file resume_name.pdf is present in the same directory, run th
 curl localhost:5000/parsed_content/pdf/resume_name -H 'Content-Type: application/json'
 ```
 
-`directory_scan`
+3) `directory_scan`
 
 ```sh
 make build;
 ```
 
 
-`cron_scan`
+4) `cron_scan`
 
 ```sh
 make build;
