@@ -16,7 +16,7 @@ import pastel_color_codes as p_codes
         ## Helper functions
 #-----------------------------------------
 ## Pastel color list
-pastel_color_names = pd.read_csv("./pastel_color_names.txt")
+pastel_color_names = pd.read_csv("Dashboard/pastel_color_names.txt")
 pastel_color_names.iloc[:, 0] = [i.strip().lower().replace(" ", "") for i in pastel_color_names.iloc[:,0].values]
 p_color_dict = {}
 for p_color in range(pastel_color_names.shape[0]):
@@ -24,8 +24,8 @@ for p_color in range(pastel_color_names.shape[0]):
         p_color_dict[ pastel_color_names.iloc[p_color].values[0] ] = p_codes.colors[ pastel_color_names.iloc[p_color].values[0] ].hex_format()
 
 ## Read in datasets/Data cleaning step
-df = pd.read_csv("./Annotated_Resumes.csv")
-df_skills = pd.read_csv("./data_engineering_extracted_skills_by_resume.csv", engine='python', names=[i for i in range(48)])
+df = pd.read_csv("Dashboard/Annotated_Resumes.csv")
+df_skills = pd.read_csv("Dashboard/data_engineering_extracted_skills_by_resume.csv", engine='python', names=[i for i in range(48)])
 df_skills.set_index(0, inplace = True)
 df_skills.index.name = "resume"
 
@@ -242,8 +242,13 @@ def gen_chart_1():
     chart1_df.columns = ["Industry","Percentage"]
     chart1_df.sort_values(by="Percentage", inplace=True, ascending=False)
 
+    # get top 10 industry, put the rest into "Others"
+    top_10_industry = get_top_n()
+    chart1_df["Industry"] = chart1_df["Industry"].apply(lambda x: "Others" if x not in top_10_industry else x )
+    chart1_df = chart1_df.groupby("Industry").agg("sum").reset_index(drop=False)
+
     ## Final chart 1 dataframe
-    return chart1_df
+    return chart1_df.sort_values("Percentage", ascending=False)
 
 # -----------------------------------------------------------------------------------------------------------------------------------
 def count_experience(group):

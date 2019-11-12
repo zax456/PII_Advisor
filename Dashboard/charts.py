@@ -24,7 +24,7 @@ def get_chart_1_fig():
     hovertext_1 = []
     ## to get hover information
     for i in range(len(x_data_1)):
-        txt = f"{x_data_1[i][0]}: <br>{x_data_1[i][1]}%"
+        txt = f"{x_data_1[i][0]}: <br>{round(x_data_1[i][1], 1)}%"
         hovertext_1.append(txt)
 
     trace1 = {
@@ -32,15 +32,24 @@ def get_chart_1_fig():
         'values': chart1_df["Percentage"].values.tolist(), # X axis
         'marker': dict(
             colors=colors_1, 
-            line=dict(color='#000000', width=2)
+            line=dict(color='#000000', width=0)
             ),
         'type': 'pie',
+        'hole': 0.3,
         'hovertext': hovertext_1,
-        'hoverinfo': "text",
+        'hoverinfo': "text"
     }
     layout1 = {
         "title":'Population distribution <br>across each industry',
-        'showlegend': False
+        'legend': {
+            'font': {'size':11},
+            'x': 1.0,
+            'y': 0.5,
+            },
+        # 'width': 450,
+        # 'height': 500,
+        'margin':{'r':0, 'l':20},
+        'autosize': True
     }
     return {
         'data': [trace1],
@@ -68,7 +77,7 @@ def get_chart_2_fig():
         'values': chart2_df["percentage"].values.tolist(),  # X axis
         'marker':dict(
             colors=colors_2, 
-            line=dict(color='#000000', width=2)
+            line=dict(color='#000000', width=0)
             ),
         'type': 'pie',
         'hole': 0.3,
