@@ -40,15 +40,16 @@ def get_chart_1_fig():
         'hoverinfo': "text"
     }
     layout1 = {
-        "title":'Population distribution <br>across each industry',
+        "title": 'Population Distribution Across Industries',
         'legend': {
             'font': {'size':11},
-            'x': 1.0,
-            'y': 0.5,
+            # 'x': 1.0,
+            # 'y': 0.5,
+            'orientation': 'h',
             },
         # 'width': 450,
         # 'height': 500,
-        'margin':{'r':0, 'l':20},
+        'margin':{'r':20, 'l':20},
         'autosize': True
     }
     return {
@@ -89,16 +90,18 @@ def get_chart_2_fig():
     }
     layout2 = {
         "title": {
-            'text': 'Population Experience distribution <br>across each industry'
+            'text': 'Work Experience Across Population'
             },
         'showlegend': True,
-        'legend_orientation': 'h',
+        # 'legend_orientation': 'h',
         # 'sort': True
         'legend': {
             'font': {'size':12},
-            'x': 1,
-            'y': 0.5,
+            # 'x': 1,
+            # 'y': 0.5,
+            'orientation': 'h'
             },
+        'margin':{'r':20, 'l':20},
         # 'annotations': [
         #     dict(x=1.21, y=0.81, xref='paper', yref='paper', text='Years', 
         #     font=dict(size=14), showarrow=False)
@@ -138,8 +141,11 @@ def get_chart_3_fig():
 
     ## set layout params
     layout3 = {
-        "title":'Distribution of the top 10 skills in the population',
-        'yaxis':{'automargin':True},
+        "title":'Top 10 Most-Possessed Skills',
+        'yaxis': {
+            'automargin':True,
+            'title': 'Population Count'
+        },
         'xaxis':{'tickangle': -45, 
                 'tickfont':{
                     'size': 9.5
@@ -209,12 +215,16 @@ def get_chart_4_fig(selected_inds):
         data4.append(tmp)
 
     layout4 = {
-        "title":'Movement of people moving across to other industries',
-        'yaxis':{'tickangle': 0, 
-                 'tickfont':{
-                     'size': 10
-                    }
-                },
+        "title":'Movement Of People Across Industries',
+        'yaxis': {
+            # 'tickangle': -45, 
+            'tickfont':{
+                'size': 10
+            }
+        },
+        'xaxis': {
+            'title': '% Workers Who Switched From Another Industry'
+        },
         'hovermode':'closest',
         'barmode': 'group',
         'plot_bgcolor': "#F4F4F4",
@@ -262,12 +272,17 @@ def get_chart_5_fig(selected_inds):
 
     ## set layout params
     layout5 = {
-        'title': "Top 10 skills in industry",
+        'title': "Top 10 Skills By Industry",
         'barmode': 'group',
         'hovermode': 'closest',
-        'xaxis': {'tickfont':{
-            'size': 14
-        }}, 
+        'xaxis': {
+            'tickfont':{
+                'size': 14
+            }
+        },
+        'yaxis': {
+            'title': 'Population Count'
+        },
         'plot_bgcolor': "#F4F4F4"
     }
 
@@ -335,12 +350,16 @@ def get_chart_6_fig(selected_inds):
 
     ## set the layout params
     layout6 = {
-        "title":'Distribution of experiences in industry',
+        "title":'Distribution Of Work Experiences By Industry',
         'yaxis':{'automargin':True, 
-        'tickfont':{
-            'size': 14
-        }},
-        'xaxis':{'visible':False},
+            'tickfont':{
+                'size': 14
+            }
+        },
+        'xaxis':{
+            'title': '% Workers',
+            # 'visible':False
+        },
         'hovermode':'closest',
         'barmode': 'stack',
         'plot_bgcolor': "#F4F4F4",
@@ -414,12 +433,17 @@ def get_chart_7_fig(selected_inds):
 
     ## set the layout params
     layout7 = {
-        "title":'Average job duration in each industry',
-        'xaxis':{'visible':False,},
-        'yaxis':{'automargin':True, 
-        'tickfont':{
-            'size': 14
-        }},
+        "title": 'Distribution Of Avg Job Durations By Industry',
+        'xaxis':{
+            'title': '% Workers'
+            # 'visible':False,
+        },
+        'yaxis':{
+            'automargin':True, 
+            'tickfont':{
+                'size': 14
+            }
+        },
         'hovermode':'closest',
         'barmode': 'stack',
         'plot_bgcolor': "#F4F4F4"
@@ -530,7 +554,7 @@ app.layout = html.Div(children=[
 )
 def get_selected_ind(selected_inds):
     if selected_inds == []:
-        selected_inds = dp.get_top_n(10)
+        selected_inds = dp.get_top_n(5)
     return \
         get_chart_4_fig(selected_inds), \
         get_chart_5_fig(selected_inds), \
