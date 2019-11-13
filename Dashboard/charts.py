@@ -217,9 +217,10 @@ def get_chart_4_fig(selected_inds):
     layout4 = {
         "title":'Movement Of People Across Industries',
         'yaxis': {
+            'automargin': True,
             # 'tickangle': -45, 
             'tickfont':{
-                'size': 10
+                'size': 14
             }
         },
         'xaxis': {
@@ -228,7 +229,7 @@ def get_chart_4_fig(selected_inds):
         'hovermode':'closest',
         'barmode': 'group',
         'plot_bgcolor': "#F4F4F4",
-        'margin':{'l':130}
+        # 'margin':{'l':130}
     }
     return {
         'data':data4,
@@ -462,8 +463,8 @@ app.layout = html.Div(children=[
     ## Logo
     ## Headers
     html.Div([
-        html.Img(height="100px", width="250px", src='assets/logo_govtech_hort.gif', className="top shadow"),
-        html.Img(height="100px", width="250px", src='assets/mycareersfuture.JPG', className="shadow", style={'float':'right', 'margin-top': '1%', 'margin-right':'2%'}),
+        html.Img(width="250px", src='assets/logo_govtech_hort.gif', className="top shadow"),
+        html.Img(width="250px", src='assets/mycareersfuture.JPG', className="shadow", style={'float':'right', 'margin-top': '1%', 'margin-right':'2%'}),
         html.H1(children=['Workforce Health Analytics'], className="header"),
         html.H3(children='Interactive Dashboard', className="subHeader")
     ], className="top"),
