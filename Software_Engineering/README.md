@@ -106,3 +106,11 @@ This might have the same credentials as the READ database above, but the choice 
 
 The schema for this `PII_DB_TABLENAME` table, which is currently named `pii`, can be created by running the script at [./db/migrations/prod/201910241026_000_create_pii.sql](./db/migrations/prod/201910241026_000_create_pii.sql).
 
+## Setting up DataTurks on Docker 
+Prerequiste: Docker is Installed on the machine
+1) Start the Docker Service (sudo service docker start)
+2) Download the DataTurk Image (curl -o dataturks_docker.tar.gz https://s3-us-west-2.amazonaws.com/images.onprem.com.dataturks/dataturks_docker_3_3_0.tar.gz)
+3) Extract the docker (tar -xvzf dataturks_docker.tar.gz)
+4) Load dataturks docker image (sudo docker load --input ./dataturks_docker.tar)
+5) Start the docker image (sudo docker run -d -p 80:80 dataturks/dataturks:3.3.0)
+6)  http://localhost (Open Browser)
