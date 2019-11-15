@@ -179,6 +179,8 @@ Function:
 
 This function iterates through a directory of resumes and runs the `parsed_content` function, which outputs the masked content and PIIs. Essentially, this allows for an iterative, scalable approach for a large amount of resumes from legacy to be updated, instead of from a singular, real-time approach from the job portal.
 
+If there are errors, the error message would also be inserted into `tmp` table, which stores log messages for such situations.
+
 Due to changing requirements, the function is not fully implemented, and could run `upload` instead of `parsed_content` as per requirements in future changes.
 
 ```sh
@@ -192,6 +194,8 @@ Time Duration of how far back in time (relative to now) to filter for recently u
 
 Function:
     Responds with a dictionary of high-level aggregate metrics for the results from scanning resumes from a timeboxed period. 
+
+If there are errors, the error message would also be inserted into `tmp` table, which stores log messages for such situations.
 
 An example of the output is shown here, for example from resumes uploaded to the database within the last 30 mins:
 
@@ -214,4 +218,15 @@ This shows that among those resumes in the last 30min, how many PIIs of each typ
 ```sh
 curl -X GET localhost:5000/cron_scan/ -d '{"time_duration":438}' -H 'Content-Type: application/json'
 ```
+
+## Setting up DataTurks on Docker
+
+Prerequiste: Docker is Installed on the machine
+
+1. Start the Docker Service (sudo service docker start)
+2. Download the DataTurk Image (curl -o dataturks_docker.tar.gz https://s3-us-west-2.amazonaws.com/images.onprem.com.dataturks/dataturks_docker_3_3_0.tar.gz)
+3. Extract the docker (tar -xvzf dataturks_docker.tar.gz)
+4. Load dataturks docker image (sudo docker load --input ./dataturks_docker.tar)
+5. Start the docker image (sudo docker run -d -p 80:80 dataturks/dataturks:3.3.0)
+6. http://localhost (Open Browser)
 
