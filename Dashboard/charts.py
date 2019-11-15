@@ -466,7 +466,7 @@ app.layout = html.Div(children=[
         html.Img(width="250px", src='assets/logo_govtech_hort.gif', className="top shadow"),
         html.Img(width="250px", src='assets/mycareersfuture.JPG', className="shadow", style={'float':'right', 'margin-top': '1%', 'margin-right':'2%'}),
         html.H1(children=['Workforce Health Analytics'], className="header"),
-        html.H3(children='Interactive Dashboard', className="subHeader")
+        html.H3(children='Interactive Dashboard', className="subHeader", style={'margin-right':'21%'})
     ], className="top"),
 
     ## Filter bar
@@ -483,7 +483,18 @@ app.layout = html.Div(children=[
                 searchable=True
             )
         ], className="twelve column")
-    ], id="navbar", className="row bar", style={'margin-bottom': '2%', 'margin-left':'2%', 'margin-right':'2%'}), 
+    ], id="navbar", className="row bar", style={'margin-bottom': '1%', 'margin-left':'2%', 'margin-right':'2%'}), 
+
+    html.Div([
+        html.A(
+            html.Button(
+                "Industry definitions", 
+                title="Link to definitions of each industry",
+                ), 
+            href='https://docs.google.com/spreadsheets/d/1b9yHYWo84RUJrQMHSOv34rR7iBkpmgmevvx9jhoQc2o/edit?usp=sharing',
+            target='_blank'
+            )
+    ], className="twelve column", style={'margin-bottom': '1%', 'margin-left':'2%', 'margin-right':'2%'}),
 
     ## 1st level of charts (Anchor charts)
     html.Div([        
