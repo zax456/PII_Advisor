@@ -140,6 +140,8 @@ Function:
     `'Success. Parsed contents and PIIs inserted into 2 tables.`
     1 insertion is into the `jobseeker_documents` table, namely the `parsed_content_v2` column, while the other insertion is into the `pii` table, where the `pii_json` column stores the PIIs extracted. 
 
+This takes in a jobseeker_document_id and performs insertion of masked resume and PIIs into the database.
+
 If there are errors, they will be returned to the terminal, and the error message would also be inserted into `tmp` table, which stores log messages for such situations.
 
 ```sh
@@ -166,15 +168,50 @@ curl localhost:5000/parsed_content/pdf/resume_name -H 'Content-Type: application
 ```
 
 3) `directory_scan`
+#### @app.route('/directory_scan/', methods=['GET'])
+
+Parameters:
+(None)
+
+Function:
+    Responds with a string 
+    `'Finished scanning resume directory.`
+
+This function iterates through a directory of resumes and runs the `parsed_content` function, which outputs the masked content and PIIs. Essentially, this allows for an iterative, scalable approach for a large amount of resumes from legacy to be updated, instead of from a singular, real-time approach from the job portal.
+
+Due to changing requirements, the function is not fully implemented, and could run `upload` instead of `parsed_content` as per requirements in future changes.
 
 ```sh
-make build;
+curl localhost:5000/directory_scan/ -H 'Content-Type: application/json'
 ```
-
 
 4) `cron_scan`
 
+Parameters:
+Time Duration of how far back in time (relative to now) to filter for recently uploaded resumes from the real-time resume database. Represented in terms of hours.
+
+Function:
+    Responds with a dictionary of high-level aggregate metrics for the results from scanning resumes from a timeboxed period. 
+
+An example of the output is shown here, for example from resumes uploaded to the database within the last 30 mins:
+
+```
+result = {
+    "name": 20,
+    "nric": 15,
+    "email": 17,
+    "phone": 14,
+    "address": 10
+    }
+```
+    
+This shows that among those resumes in the last 30min, how many PIIs of each type (soft/ hard) were found. Over time, more useful metrics could be included, such as:
+
+- number of resumes scanned
+- time elapsed
+- ids of those resumes with zero outputs (flag for manual inspections)
+
 ```sh
-make build;
+curl -X GET localhost:5000/cron_scan/ -d '{"time_duration":438}' -H 'Content-Type: application/json'
 ```
 
