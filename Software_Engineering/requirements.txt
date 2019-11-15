@@ -1,6 +1,6 @@
 # Purpose: tell docker what packages and their versions are needed to run the Python script
 # How to run: pip install -r requirements.txt
-Flask==0.12.2
+Flask==1.0
 flask_restful==0.3.7
 pandas == 0.24.2
 numpy == 1.16.5
