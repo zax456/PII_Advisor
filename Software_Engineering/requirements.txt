@@ -3,7 +3,7 @@
 Flask==0.12.2
 flask_restful==0.3.7
 pandas == 0.24.2
-numpy == 1.16.5
+numpy == 1.22.0
 pymysql == 0.9.3
 configparser == 4.0.2
 requests==2.20.0
